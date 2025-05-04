@@ -1,0 +1,1 @@
+/usr/bin/c++ -g CMakeFiles/Ticket_System_Copy.dir/main.cpp.o -o Ticket_System_Copy 
