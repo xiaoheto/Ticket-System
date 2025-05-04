@@ -192,39 +192,40 @@ private:
             ChangeNodeBuffer(buffer_.node_size, id_, node);
             ++buffer_.node_size;
         } else {
-            int oldest_time = buffer_.node_time[0];
-            int toDeleteIdx = 0;
-            for (int i = 1; i < buffer_.node_size; ++i) {
-                if (buffer_.node_time[i] < oldest_time) {
-                    oldest_time = buffer_.node_time[i];
-                    toDeleteIdx = i;
+            int tag = buffer_.time_tag;
+            int toDeleteId;
+            for (int i = 0; i < buffer_.node_size; ++i) {
+                if (buffer_.node_time[i] < tag) {
+                    tag = buffer_.node_time[i];
+                    toDeleteId = buffer_.node_id[i];
                 }
             }
-            DeleteNodeBuffer(toDeleteIdx);
-            ChangeNodeBuffer(toDeleteIdx, id_, node);
+            DeleteNodeBuffer(toDeleteId); //LRU
+            ChangeNodeBuffer(toDeleteId, id_, node);
             ++buffer_.node_size;
         }
     }
-    void AddValueBuffer(int id_, NodeValue value) {
+
+    void AddValueBuffer(int id_,NodeValue value) {
         ++buffer_.time_tag;
         if (buffer_.value_size < Buffer_size) {
-            ChangeValueBuffer(buffer_.value_size, id_, value);
+            ChangeValueBuffer(buffer_.value_size,id_,value);
             ++buffer_.value_size;
-        } else {
-            int oldest_time = buffer_.value_time[0];
-            int toDeleteIdx = 0;
-            for (int i = 1; i < buffer_.value_size; ++i) {
-                if (buffer_.value_time[i] < oldest_time) {
-                    oldest_time = buffer_.value_time[i];
-                    toDeleteIdx = i;
+        }
+        else {
+            int tag = buffer_.time_tag;
+            int toDeleteId;
+            for(int i = 0;i < buffer_.value_size;++i) {
+                if (buffer_.value_time[i] < tag) {
+                    tag = buffer_.value_time[i];
+                    toDeleteId = buffer_.value_id[i];
                 }
             }
-            DeleteValueBuffer(toDeleteIdx);
-            ChangeValueBuffer(toDeleteIdx, id_, value);
+            DeleteValueBuffer(toDeleteId);
+            ChangeValueBuffer(toDeleteId,id_,value);
             ++buffer_.value_size;
         }
     }
-
 
     void UpdateNodeInBuffer(int id_,Node node) {
         ++buffer_.time_tag;
@@ -276,7 +277,6 @@ private:
 
     void WriteBasicInfo(BasicInfo info) {
         buffer_.basic_info = info;
-        WriteBasicInfoDisk(info);
     }
 
     Node ReadNode(int pos) {
@@ -667,8 +667,16 @@ private:
     }
 
     int Allocate() {
-        int ans = FindBufferEmpty();
-        WriteBasicInfo(basic_information);
+        int ans = 0;
+        for(int i = 0;i  < MAX_NODES;++i) {
+            if (basic_information.empty_id_[i] > 0) {
+                ans = basic_information.empty_id_[i];
+                basic_information.empty_id_[i] = 0;
+                break;
+            }
+        }
+
+        assert(ans > 0);
         return ans;
     }
 
@@ -800,16 +808,15 @@ public:
 
     vector<T> Search(const string &ind) {
         HashIndex hash = GetHash(ind);
-        vector<T> ans = {};
+        vector<T> ans;
         basic_information = ReadBasicInfo();
-        if (basic_information.root_id_ == 0) {
-            return ans;
-        }
+        if (basic_information.root_id_ == 0) return ans;
+
         Node cur_node = ReadNode(basic_information.root_id_);
         while (!cur_node.is_leaf) {
             int pos = cur_node.size_;
             for (int i = 0; i < cur_node.size_; ++i) {
-                if (hash <= cur_node.index[i]) {
+                if (hash < cur_node.index[i]) {
                     pos = i;
                     break;
                 }
@@ -823,6 +830,7 @@ public:
 
         while (true) {
             NodeValue value = ReadValue(cur_node.id_);
+            bool continue_next = false;
 
             for (int i = 0; i < cur_node.size_; ++i) {
                 if (cur_node.index[i] == hash) {
