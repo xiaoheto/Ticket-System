@@ -4,7 +4,7 @@
 
 #ifndef BPLUSTREE_H
 #define BPLUSTREE_H
-#include "STLite/vector.hpp"
+#include "vector.hpp"
 #include <fstream>
 #include <cassert>
 #include <random>
