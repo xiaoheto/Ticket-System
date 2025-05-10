@@ -8,4 +8,5 @@ include_directories(STLite)
 
 add_executable(code
         main.cpp
-    )
+        BPT/BPlusTree.hpp
+)

@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I"/mnt/c/Users/43741/Ticket-System Copy/BPT" -I"/mnt/c/Users/43741/Ticket-System Copy/STLite"
+CXX_INCLUDES = -I/mnt/c/Users/43741/Ticket-System/BPT -I/mnt/c/Users/43741/Ticket-System/STLite
 
 CXX_FLAGS = -g -std=gnu++14
 
