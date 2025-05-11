@@ -1,13 +1,9 @@
 #include <string>
-#include <sstream>
 #include <fstream>
-#include <cassert>
-#include <random>
-#include <cstddef>
-#include <iostream>
 #include <cstring>
 
 #include "vector.hpp"
+#include "MyChar.h"
 
 using std::string;
 using std::fstream;
@@ -96,25 +92,25 @@ public:
     }
 };
 
-template<typename T>
+template<typename T,int length>
 struct KVPair {
-    char index[65];
+    MyChar<length> index;
     T value;
 
     KVPair() = default;
 
-    KVPair(char index[65], T val) {
-        std::strcpy(this->index, index);
+    KVPair(MyChar<length> &other, T val) {
+        index = other;
         value = val;
     }
 
     KVPair(const KVPair &other) {
-        std::strcpy(index, other.index);
+        index = other.index;
         value = other.value;
     }
 
     bool operator==(const KVPair &other) const {
-        return std::strcmp(index, other.index) == 0 && value == other.value;
+        return index == other.index && value == other.value;
     }
 
     bool operator!=(const KVPair &other) const {
@@ -122,8 +118,8 @@ struct KVPair {
     }
 
     bool operator<(const KVPair &other) const {
-        if (std::strcmp(index, other.index) != 0) {
-            return std::strcmp(index, other.index) < 0;
+        if (index != other.index) {
+            return index < other.index;
         }
         return value < other.value;
     }
@@ -133,8 +129,8 @@ struct KVPair {
     }
 
     bool operator>(const KVPair &other) const {
-        if (std::strcmp(index, other.index) != 0) {
-            return std::strcmp(index, other.index) > 0;
+        if (index != other.index) {
+            return index > other.index;
         }
         return value > other.value;
     }
@@ -144,12 +140,12 @@ struct KVPair {
     }
 };
 
-template<class T,int MAX = 120,int MIN = MAX / 2>
+template<class T,int MAX = 120,int MIN = MAX / 2,int index_length = 65>
 class BPlusTree {
     class Node {
         bool is_leaf;
         int size;
-        KVPair<T> kv_pair[MAX + 2];
+        KVPair<T,index_length> kv_pair[MAX + 2];
         int sib;
         int son[MAX + 2];
         friend class BPlusTree;
@@ -164,10 +160,10 @@ class BPlusTree {
 
     int root;
     MemoryRiver<Node> base_file;
-    KVPair<T> pass;
+    KVPair<T,index_length> pass;
 
     //find the first pos that is larger than kv
-    int findPos(int l, int r, Node node, KVPair<T> kv) {
+    int findPos(int l, int r, Node node, KVPair<T,index_length> kv) {
         while (l < r) {
             int mid = (l + r) / 2;
             if (node.kv_pair[mid] > kv) {
@@ -179,7 +175,7 @@ class BPlusTree {
         return l;
     }
 
-    bool Insert(Node cur_node, int pos, KVPair<T> kv) {
+    bool Insert(Node cur_node, int pos, KVPair<T,index_length> kv) {
         if (cur_node.is_leaf) {
             int l = findPos(0, cur_node.size, cur_node, kv);
 
@@ -304,7 +300,7 @@ class BPlusTree {
         return true;
     }
 
-    bool Delete(Node &cur_node, int pos, const KVPair<T> &kv) {
+    bool Delete(Node &cur_node, int pos, const KVPair<T,index_length> &kv) {
         if (cur_node.is_leaf) {
             int l = 0, r = cur_node.size;
             while (l < r) {
@@ -542,8 +538,8 @@ public:
         return root == -1;
     }
 
-    void insert(char index[65], T value) {
-        KVPair<T> kv(index, value);
+    void insert(MyChar<index_length> index, T value) {
+        KVPair<T,index_length> kv(index, value);
         if (root == -1) {
             Node x;
             x.kv_pair[0] = kv;
@@ -558,17 +554,17 @@ public:
         }
     }
 
-    void erase(char index[65], T value) {
+    void erase(MyChar<index_length>index, T value) {
         if (root == -1) {
             return;
         }
-        KVPair<T> kv(index, value);
+        KVPair<T,index_length> kv(index, value);
         Node cur_node;
         base_file.read(cur_node, root);
         Delete(cur_node, root, kv);
     }
 
-    vector<T> query(char index[65]) {
+    vector<T> query(MyChar<index_length>index) {
         vector<T> ans;
         ans.clear();
         if(root == -1){
@@ -579,7 +575,8 @@ public:
         while (!cur_node.is_leaf) {
             int i = 0;
             for (; i < cur_node.size; i++) {
-                if (std::strcmp(index, cur_node.kv_pair[i].index) <= 0 && (i-1 == -1 || std::strcmp(index, cur_node.kv_pair[i-1].index) >= 0)) {
+                if (std::strcmp(index.c_str(), cur_node.kv_pair[i].index.c_str()) <= 0 &&
+    (i - 1 == -1 || std::strcmp(index.c_str(), cur_node.kv_pair[i - 1].index.c_str()) >= 0)) {
                     break;
                 }
             }
@@ -594,10 +591,10 @@ public:
                 i = -1;
                 continue;
             }
-            if (std::strcmp(index, cur_node.kv_pair[i].index) < 0) {
+            if (std::strcmp(index.c_str(), cur_node.kv_pair[i].index.c_str()) < 0) {
                 break;
             }
-            if (std::strcmp(index, cur_node.kv_pair[i].index) == 0) {
+            if (std::strcmp(index.c_str(), cur_node.kv_pair[i].index.c_str()) == 0) {
                 ans.push_back(cur_node.kv_pair[i].value);
                 continue;
             }

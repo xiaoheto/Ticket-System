@@ -1,6 +1,10 @@
 file(REMOVE_RECURSE
+  "CMakeFiles/code.dir/BPT/CommandParser.cpp.o"
+  "CMakeFiles/code.dir/BPT/CommandParser.cpp.o.d"
   "CMakeFiles/code.dir/main.cpp.o"
   "CMakeFiles/code.dir/main.cpp.o.d"
+  "CMakeFiles/code.dir/src/User.cpp.o"
+  "CMakeFiles/code.dir/src/User.cpp.o.d"
   "code"
   "code.pdb"
 )

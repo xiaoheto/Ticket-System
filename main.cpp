@@ -3,40 +3,40 @@
 #include <sstream>
 
 #include "STLite/vector.hpp"
-#include "BPT/BPlusTree.hpp";
+#include "BPT/BPlusTree.hpp"
 using std::cin;
 using std::cout;
 using sjtu::vector;
 
-int n;
 int main() {
-    ios::sync_with_stdio(false);
-    cin.tie(nullptr);
-    cout.tie(nullptr);
+    std::ios::sync_with_stdio(false);
+    std::cin.tie(nullptr);
 
-    BPlusTree<int> tree;
-    cin >> n;
-    string line;
-    std::getline(cin,line);
+    BPlusTree<int,120,60,65> db;
 
-    while(n--) {
-        std::getline(cin,line);
+    int n;
+    std::cin >> n;
+    std::string line;
+    std::getline(std::cin, line); // 读掉换行符
+
+    for (int i = 0; i < n; ++i) {
+        std::getline(std::cin, line);
         std::stringstream ss(line);
-        string command;
-        char index[65];
+        std::string command;
+        MyChar<65> index;
         int value;
 
         ss >> command;
 
         if (command == "insert") {
             ss >> index >> value;
-            tree.insert(index,value);
+            db.insert(index, value);
         } else if (command == "delete") {
             ss >> index >> value;
-            tree.erase(index,value);
+            db.erase(index, value);
         } else if (command == "find") {
             ss >> index;
-            vector<int> result = tree.query(index);
+            vector<int> result = db.query(index);
             if (result.empty()) {
                 std::cout << "null\n";
             } else {
@@ -49,5 +49,6 @@ int main() {
             }
         }
     }
+
     return 0;
 }

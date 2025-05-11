@@ -1,1 +1,1 @@
-/usr/bin/c++ -g CMakeFiles/code.dir/main.cpp.o -o code 
+/usr/bin/c++ -g CMakeFiles/code.dir/main.cpp.o CMakeFiles/code.dir/src/User.cpp.o CMakeFiles/code.dir/BPT/CommandParser.cpp.o -o code 

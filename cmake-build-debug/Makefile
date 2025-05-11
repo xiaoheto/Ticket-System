@@ -129,6 +129,30 @@ code/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/build
 .PHONY : code/fast
 
+BPT/CommandParser.o: BPT/CommandParser.cpp.o
+.PHONY : BPT/CommandParser.o
+
+# target to build an object file
+BPT/CommandParser.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/BPT/CommandParser.cpp.o
+.PHONY : BPT/CommandParser.cpp.o
+
+BPT/CommandParser.i: BPT/CommandParser.cpp.i
+.PHONY : BPT/CommandParser.i
+
+# target to preprocess a source file
+BPT/CommandParser.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/BPT/CommandParser.cpp.i
+.PHONY : BPT/CommandParser.cpp.i
+
+BPT/CommandParser.s: BPT/CommandParser.cpp.s
+.PHONY : BPT/CommandParser.s
+
+# target to generate assembly for a file
+BPT/CommandParser.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/BPT/CommandParser.cpp.s
+.PHONY : BPT/CommandParser.cpp.s
+
 main.o: main.cpp.o
 .PHONY : main.o
 
@@ -153,6 +177,30 @@ main.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/main.cpp.s
 .PHONY : main.cpp.s
 
+src/User.o: src/User.cpp.o
+.PHONY : src/User.o
+
+# target to build an object file
+src/User.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/User.cpp.o
+.PHONY : src/User.cpp.o
+
+src/User.i: src/User.cpp.i
+.PHONY : src/User.i
+
+# target to preprocess a source file
+src/User.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/User.cpp.i
+.PHONY : src/User.cpp.i
+
+src/User.s: src/User.cpp.s
+.PHONY : src/User.s
+
+# target to generate assembly for a file
+src/User.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/User.cpp.s
+.PHONY : src/User.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -162,9 +210,15 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... code"
+	@echo "... BPT/CommandParser.o"
+	@echo "... BPT/CommandParser.i"
+	@echo "... BPT/CommandParser.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
+	@echo "... src/User.o"
+	@echo "... src/User.i"
+	@echo "... src/User.s"
 .PHONY : help
 
 
