@@ -4,7 +4,7 @@
 
 #include "vector.hpp"
 #include "MyChar.h"
-
+#include "MemoryRiver.h"
 using std::string;
 using std::fstream;
 using std::ifstream;
@@ -17,80 +17,6 @@ using std::fstream;
 using std::ifstream;
 using std::ofstream;
 using sjtu::vector;
-
-template<typename T, int info_len = 2>
-class MemoryRiver {
-    fstream file;
-    string filename;
-    int sizeofT = sizeof(T);
-
-public:
-    MemoryRiver() = default;
-
-    MemoryRiver(const string &file_name) : filename(file_name) {}
-
-    void initialise(const string &FN = "",bool clearFile = false) {
-        if (!FN.empty()) {
-            filename = FN;
-        }
-        file.open(filename);
-        if (!file || clearFile) {
-            file.open(filename, std::ios::out | ios::binary);
-            file.close();
-            file.open(filename, std::ios::in | std::ios::out);
-            int tmp = -1, tmp2 = 0;
-            file.write(reinterpret_cast<char *>(&tmp), sizeof(int));
-            for (int i = 1; i < info_len; ++i){
-                file.write(reinterpret_cast<char *>(&tmp2), sizeof(int));
-            }
-        }
-    }
-
-    void get_info(int &tmp, int n) {
-        if (n > info_len) {
-            return;
-        }
-        file.seekg((n - 1) * sizeof(int), std::ios::beg);
-        file.read(reinterpret_cast<char *>(&tmp), sizeof(int));
-    }
-
-    void write_info(int tmp, int n) {
-        if (n > info_len) {
-            return;
-        }
-        file.seekp((n - 1) * sizeof(int), std::ios::beg);
-        file.write(reinterpret_cast<char *>(&tmp), sizeof(int));
-    }
-
-    int write(T &t) {
-        file.seekp(0, std::ios::end);
-        int index = file.tellp();
-        index = (index - info_len * sizeof(int)) / sizeofT;
-        update(t, index);
-        return index;
-    }
-
-    int get_index() {
-        file.seekp(0, std::ios::end);
-        int index = file.tellp();
-        index = (index - info_len * sizeof(int)) / sizeofT;
-        return index;
-    }
-
-    void update(T &t, const int index) {
-        file.seekp(info_len * sizeof(int) + index * sizeofT);
-        file.write(reinterpret_cast<char *>(&t), sizeofT);
-    }
-
-    void read(T &t, const int index) {
-        file.seekg(info_len * sizeof(int) + index * sizeofT);
-        file.read(reinterpret_cast<char *>(&t), sizeofT);
-    }
-
-    void end() {
-        file.close();
-    }
-};
 
 template<typename T,int length>
 struct KVPair {
@@ -140,7 +66,7 @@ struct KVPair {
     }
 };
 
-template<class T,int MAX = 120,int MIN = MAX / 2,int index_length = 65,int Buffer_size = 120>
+template<class T,int MAX = 120,int MIN = MAX / 2,int index_length = 65>
 class BPlusTree {
     class Node {
         bool is_leaf;
@@ -161,103 +87,6 @@ class BPlusTree {
     int root;
     MemoryRiver<Node> base_file;
     KVPair<T,index_length> pass;
-
-    struct Buffer {
-        int size = 0;
-        int time_tag = 0;
-        int node_id[Buffer_size]{};
-        int node_time[Buffer_size]{};
-        Node nodes[Buffer_size]{};
-    } buffer;
-
-    void DeleteNodeBuffer(int pos) {
-        base_file.update(buffer.nodes[pos],buffer.node_id[pos]);
-        --buffer.size;
-        if (buffer.size > 0 && pos != buffer.size) {
-            buffer.node_id[pos] = buffer.node_id[buffer.size];
-            buffer.nodes[pos] = buffer.nodes[buffer.size];
-            buffer.node_time[pos] = buffer.node_time[buffer.size];
-        }
-    }
-
-    void ChangeNodeBuffer(int pos,int id,Node node) {
-        buffer.node_id[pos] = id;
-        buffer.nodes[pos] = node;
-        buffer.node_time[pos] = buffer.time_tag;
-    }
-
-    void UpdateNodeBuffer(int id,Node node) {
-        ++buffer.time_tag;
-        for(int i = 0;i < buffer.size;++i) {
-            if (buffer.node_id[i] == id) {
-                buffer.node_time[i] = buffer.time_tag;
-                buffer.nodes[i] = node;
-                return;
-            }
-        }
-    }
-
-    Node GetNodeBuffer(int id) {
-        ++buffer.time_tag;
-        for(int i = 0;i < buffer.size;++i) {
-            if(buffer.node_id[i] == id) {
-                buffer.node_time[i] = buffer.time_tag;
-                return buffer.nodes[i];
-            }
-        }
-        throw;
-    }
-
-    void PushNodeBuffer(int id,Node node) {
-        ++buffer.time_tag;
-        if (buffer.size < Buffer_size) {
-            ChangeNodeBuffer(buffer.size,id,node);
-            ++buffer.size;
-        }
-        else {
-            int tag = buffer.time_tag,pos = -1;
-            for(int i = 0;i < buffer.size;++i) {
-                if (buffer.node_time[i] <= tag) {
-                    tag = buffer.node_time[i];
-                    pos = i;
-                }
-            }
-            DeleteNodeBuffer(pos);
-            ChangeNodeBuffer(pos,id,node);
-            ++buffer.size;
-        }
-    }
-
-    bool CheckNodeInBuffer(int id) {
-        for(int i = 0;i < buffer.size;++i) {
-            if (buffer.node_id[i] == id) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    Node ReadNode(int pos) {
-        if (CheckNodeInBuffer(pos)) {
-            return GetNodeBuffer(pos);
-        }
-        else {
-            Node node;
-            base_file.read(node,pos);
-            PushNodeBuffer(pos,node);
-            return node;
-        }
-        throw;
-    }
-
-    void UpdateNode(Node node,int pos) {
-        if (CheckNodeInBuffer(pos)) {
-            UpdateNodeBuffer(pos,node);
-        }
-        else {
-            PushNodeBuffer(pos,node);
-        }
-    }
 
     //find the first pos that is larger than kv
     int findPos(int l, int r, Node node, KVPair<T,index_length> kv) {
@@ -286,7 +115,7 @@ class BPlusTree {
                 }
                 cur_node.size++;
                 cur_node.kv_pair[l] = kv;
-                UpdateNode(cur_node, pos);
+                base_file.update(cur_node, pos);
                 return false;
             }
 
@@ -316,16 +145,15 @@ class BPlusTree {
                 newroot.son[0] = pos;
                 newroot.son[1] = newpos;
 
-                UpdateNode(cur_node, pos);
-                UpdateNode(newbro, newpos);
+                base_file.update(cur_node, pos);
+                base_file.update(newbro, newpos);
                 int rootpos = base_file.get_index();
-                int ppos = base_file.get_index();
-                UpdateNode(newroot,ppos);
+                base_file.write(newroot);
                 root = rootpos;
                 return false;
             }
-            UpdateNode(cur_node, pos);
-            UpdateNode(newbro, newpos);
+            base_file.update(cur_node, pos);
+            base_file.update(newbro, newpos);
             pass = newbro.kv_pair[0];
             return true;
         }
@@ -343,7 +171,8 @@ class BPlusTree {
             ++l;
         }
 
-        Node child = ReadNode(cur_node.son[l]);
+        Node child;
+        base_file.read(child, cur_node.son[l]);
 
         bool state = Insert(child, cur_node.son[l], kv);
         if (!state) {
@@ -357,7 +186,7 @@ class BPlusTree {
             cur_node.size++;
             cur_node.kv_pair[l] = pass;
             cur_node.son[l + 1] = base_file.get_index()-1;
-            UpdateNode(cur_node, pos);
+            base_file.update(cur_node, pos);
             return false;
         }
         for (int i = cur_node.size - 1; i >= l; --i) {
@@ -387,15 +216,13 @@ class BPlusTree {
             newroot.kv_pair[0] = pass;
             newroot.son[0] = pos;
             newroot.son[1] = newpos;
-            UpdateNode(cur_node, pos);
-            UpdateNode(newbro, newpos);
-            int ppos = base_file.get_index();
-            UpdateNode(newroot,ppos);
-            root = ppos;
+            base_file.update(cur_node, pos);
+            base_file.update(newbro, newpos);
+            root = base_file.write(newroot);
             return false;
         }
-        UpdateNode(cur_node, pos);
-        UpdateNode(newbro, newpos);
+        base_file.update(cur_node, pos);
+        base_file.update(newbro, newpos);
         return true;
     }
 
@@ -419,9 +246,9 @@ class BPlusTree {
             }
             --cur_node.size;
             if (pos == root) {
-                UpdateNode(cur_node, pos);
+                base_file.update(cur_node, pos);
             }
-            UpdateNode(cur_node, pos);
+            base_file.update(cur_node, pos);
             if (cur_node.size < MIN) {
                 return true;
             }
@@ -440,17 +267,18 @@ class BPlusTree {
         if (l < cur_node.size && kv == cur_node.kv_pair[l]) {
             ++l;
         }
-        Node child = ReadNode(cur_node.son[l]);
+        Node child;
+        base_file.read(child, cur_node.son[l]);
         bool state = Delete(child, cur_node.son[l], kv);
         if (!state)
             return false;
         if (pos == root && cur_node.size == 1) {
             static Node newbro[2];
-            newbro[0] = ReadNode(cur_node.son[0]);
-            newbro[1] = ReadNode(cur_node.son[1]);
+            base_file.read(newbro[0], cur_node.son[0]);
+            base_file.read(newbro[1], cur_node.son[1]);
             if (newbro[0].size + newbro[1].size < MAX) {
-                newbro[0] = ReadNode(cur_node.son[0]);
-                newbro[1] = ReadNode(cur_node.son[1]);
+                base_file.read(newbro[0], cur_node.son[0]);
+                base_file.read(newbro[1], cur_node.son[1]);
                 if (newbro[0].is_leaf) {
                     for (int i = 0; i < newbro[1].size; ++i) {
                         newbro[0].kv_pair[i + newbro[0].size] = newbro[1].kv_pair[i];
@@ -458,7 +286,7 @@ class BPlusTree {
                     newbro[0].size += newbro[1].size;
                     newbro[0].sib = newbro[1].sib;
                     root = cur_node.son[0];
-                    UpdateNode(newbro[0], cur_node.son[0]);
+                    base_file.update(newbro[0], cur_node.son[0]);
                     return false;
                 }
                 for (int i = 0; i < newbro[1].size; ++i) {
@@ -469,15 +297,16 @@ class BPlusTree {
                 newbro[0].kv_pair[newbro[0].size] = cur_node.kv_pair[0];
                 newbro[0].size += newbro[1].size + 1;
                 root = cur_node.son[0];
-                UpdateNode(newbro[0], cur_node.son[0]);
+                base_file.update(newbro[0], cur_node.son[0]);
                 return false;
             }
         }
         if (l > 0) {
-            static Node newbro = ReadNode(cur_node.son[l - 1]);
+            static Node newbro;
+            base_file.read(newbro, cur_node.son[l - 1]);
             if (newbro.size > MIN) {
                 if (child.is_leaf) {
-                    newbro = ReadNode(cur_node.son[l - 1]);
+                    base_file.read(newbro, cur_node.son[l - 1]);
                     for (int i = child.size - 1; i >= 0; --i) {
                         child.kv_pair[i + 1] = child.kv_pair[i];
                     }
@@ -485,12 +314,12 @@ class BPlusTree {
                     ++child.size;
                     --newbro.size;
                     cur_node.kv_pair[l - 1] = child.kv_pair[0];
-                    UpdateNode(cur_node, pos);
-                    UpdateNode(newbro, cur_node.son[l - 1]);
-                    UpdateNode(child, cur_node.son[l]);
+                    base_file.update(cur_node, pos);
+                    base_file.update(newbro, cur_node.son[l - 1]);
+                    base_file.update(child, cur_node.son[l]);
                     return false;
                 }
-                newbro = ReadNode(cur_node.son[l - 1]);
+                base_file.read(newbro, cur_node.son[l - 1]);
                 for (int i = child.size; i >= 1; --i) {
                     child.kv_pair[i] = child.kv_pair[i - 1];
                     child.son[i + 1] = child.son[i];
@@ -501,13 +330,13 @@ class BPlusTree {
                 child.son[0] = newbro.son[newbro.size];
                 cur_node.kv_pair[l - 1] = newbro.kv_pair[newbro.size - 1];
                 --newbro.size;
-                UpdateNode(cur_node, pos);
-                UpdateNode(newbro, cur_node.son[l - 1]);
-                UpdateNode(child, cur_node.son[l]);
+                base_file.update(cur_node, pos);
+                base_file.update(newbro, cur_node.son[l - 1]);
+                base_file.update(child, cur_node.son[l]);
                 return false;
             }
             if (child.is_leaf) {
-                newbro = ReadNode(cur_node.son[l - 1]);
+                base_file.read(newbro, cur_node.son[l - 1]);
                 for (int i = 0; i < child.size; ++i) {
                     newbro.kv_pair[i + newbro.size] = child.kv_pair[i];
                 }
@@ -519,13 +348,13 @@ class BPlusTree {
                 }
                 --cur_node.size;
                 newbro.sib = child.sib;
-                UpdateNode(cur_node, pos);
-                UpdateNode(newbro, cur_node.son[l - 1]);
+                base_file.update(cur_node, pos);
+                base_file.update(newbro, cur_node.son[l - 1]);
                 if (cur_node.size < MIN)
                     return true;
                 return false;
             }
-            newbro = ReadNode(cur_node.son[l - 1]);
+            base_file.read(newbro, cur_node.son[l - 1]);
             for (int i = 0; i < child.size; ++i) {
                 newbro.kv_pair[i + newbro.size + 1] = child.kv_pair[i];
                 newbro.son[i + newbro.size + 1] = child.son[i];
@@ -538,17 +367,17 @@ class BPlusTree {
                 cur_node.son[i + 1] = cur_node.son[i + 2];
             }
             --cur_node.size;
-            UpdateNode(cur_node, pos);
-            UpdateNode(newbro, cur_node.son[l - 1]);
+            base_file.update(cur_node, pos);
+            base_file.update(newbro, cur_node.son[l - 1]);
             if (cur_node.size < MIN)
                 return true;
             return false;
         } else if (l < cur_node.size) {
             static Node newbro;
-            newbro = ReadNode(cur_node.son[l + 1]);
+            base_file.read(newbro, cur_node.son[l + 1]);
             if (newbro.size > MIN) {
                 if (child.is_leaf) {
-                    newbro = ReadNode(cur_node.son[l + 1]);
+                    base_file.read(newbro, cur_node.son[l + 1]);
                     child.kv_pair[child.size] = newbro.kv_pair[0];
                     ++child.size;
                     for (int i = 0; i < newbro.size - 1; ++i) {
@@ -556,12 +385,12 @@ class BPlusTree {
                     }
                     --newbro.size;
                     cur_node.kv_pair[l] = newbro.kv_pair[0];
-                    UpdateNode(cur_node, pos);
-                    UpdateNode(child, cur_node.son[l]);
-                    UpdateNode(newbro, cur_node.son[l + 1]);
+                    base_file.update(cur_node, pos);
+                    base_file.update(child, cur_node.son[l]);
+                    base_file.update(newbro, cur_node.son[l + 1]);
                     return false;
                 }
-                newbro = ReadNode(cur_node.son[l + 1]);
+                base_file.read(newbro, cur_node.son[l + 1]);
                 child.kv_pair[child.size] = cur_node.kv_pair[l];
                 child.son[child.size + 1] = newbro.son[0];
                 ++child.size;
@@ -572,13 +401,13 @@ class BPlusTree {
                 }
                 newbro.son[newbro.size - 1] = newbro.son[newbro.size];
                 --newbro.size;
-                UpdateNode(cur_node, pos);
-                UpdateNode(child, cur_node.son[l]);
-                UpdateNode(newbro, cur_node.son[l + 1]);
+                base_file.update(cur_node, pos);
+                base_file.update(child, cur_node.son[l]);
+                base_file.update(newbro, cur_node.son[l + 1]);
                 return false;
             }
             if (child.is_leaf) {
-                newbro = ReadNode(cur_node.son[l + 1]);
+                base_file.read(newbro, cur_node.son[l + 1]);
                 for (int i = 0; i < newbro.size; ++i) {
                     child.kv_pair[i + child.size] = newbro.kv_pair[i];
                 }
@@ -590,13 +419,13 @@ class BPlusTree {
                 }
                 --cur_node.size;
                 child.sib = newbro.sib;
-                UpdateNode(cur_node, pos);
-                UpdateNode(child, cur_node.son[l]);
+                base_file.update(cur_node, pos);
+                base_file.update(child, cur_node.son[l]);
                 if (cur_node.size < MIN)
                     return true;
                 return false;
             }
-            newbro = ReadNode(cur_node.son[l + 1]);
+            base_file.read(newbro, cur_node.son[l + 1]);
             for (int i = 0; i < newbro.size; ++i) {
                 child.kv_pair[i + child.size + 1] = newbro.kv_pair[i];
                 child.son[i + child.size + 1] = newbro.son[i];
@@ -609,8 +438,8 @@ class BPlusTree {
                 cur_node.son[i + 1] = cur_node.son[i + 2];
             }
             --cur_node.size;
-            UpdateNode(cur_node,pos );
-            UpdateNode(child, cur_node.son[l]);
+            base_file.update(cur_node,pos );
+            base_file.update(child, cur_node.son[l]);
             if (cur_node.size < MIN)
                 return true;
             return false;
@@ -645,7 +474,8 @@ public:
             x.sib = -1;
             root = base_file.write(x);
         } else {
-            Node cur_node = ReadNode(root);
+            Node cur_node;
+            base_file.read(cur_node, root);
             Insert(cur_node, root, kv);
         }
     }
@@ -655,7 +485,8 @@ public:
             return;
         }
         KVPair<T,index_length> kv(index, value);
-        Node cur_node = ReadNode(root);
+        Node cur_node;
+        base_file.read(cur_node, root);
         Delete(cur_node, root, kv);
     }
 
@@ -665,7 +496,8 @@ public:
         if(root == -1){
             return ans;
         }
-        Node cur_node = ReadNode(root);
+        Node cur_node;
+        base_file.read(cur_node, root);
         while (!cur_node.is_leaf) {
             int i = 0;
             for (; i < cur_node.size; i++) {
@@ -674,14 +506,14 @@ public:
                     break;
                 }
             }
-            cur_node = ReadNode(cur_node.son[i]);
+            base_file.read(cur_node, cur_node.son[i]);
         }
         for (int i = 0; i <= cur_node.size; i++) {
             if (i == cur_node.size) {
                 if (cur_node.sib == -1) {
                     break;
                 }
-                cur_node = ReadNode(cur_node.sib);
+                base_file.read(cur_node, cur_node.sib);
                 i = -1;
                 continue;
             }
