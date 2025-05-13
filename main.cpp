@@ -1,18 +1,31 @@
-#include <iostream>
 #include <string>
 #include <sstream>
-
-#include "STLite/vector.hpp"
-#include "BPT/BPlusTree.hpp"
-using std::cin;
-using std::cout;
+#include <fstream>
+#include <cassert>
+#include <random>
+#include <cstddef>
+#include <iostream>
+#include <cstring>
+using std::string;
+using std::fstream;
+using std::ifstream;
+using std::ofstream;
+using std::pair;
+using std::string;
+using std::ios;
+using std::string;
+using std::fstream;
+using std::ifstream;
+using std::ofstream;
+#include "vector.hpp"
+#include "BPlusTree.hpp"
+#include "MyChar.h"
 using sjtu::vector;
-
 int main() {
     std::ios::sync_with_stdio(false);
     std::cin.tie(nullptr);
 
-    BPlusTree<int,120,60,65> db;
+    BPlusTree<int> db;
 
     int n;
     std::cin >> n;

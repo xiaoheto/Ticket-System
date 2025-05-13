@@ -10,9 +10,10 @@ include_directories(Tool)
 add_executable(code
         main.cpp
         BPT/BPlusTree.hpp
-        src/User.cpp
         src/User.h
         BPT/CommandParser.cpp
         BPT/CommandParser.h
         BPT/MyChar.h
+        BPT/MemoryRiver.h
+        src/MyError.h
 )

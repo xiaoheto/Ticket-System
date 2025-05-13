@@ -1,14 +1,12 @@
-//
-// Created by 43741 on 2025/5/11.
-//
-
-#ifndef MYSTRING_H
-#define MYSTRING_H
+#ifndef MYCHAR_H
+#define MYCHAR_H
 #include <cstring>
 #include <iostream>
 #include <iomanip>
 using std::string;
 using std::strcpy;
+using std::istream;
+using std::ostream;
 
 template <int length>
 class MyChar {
@@ -18,13 +16,13 @@ class MyChar {
 public:
     MyChar() = default;
 
-    explicit MyChar(const string &str) {
+    MyChar(const string &str) {
         strcpy(myChar,str.c_str());
-    };
+    }
 
     MyChar(const MyChar &other) {
         strcpy(myChar,other.myChar);
-    };
+    }
 
     explicit MyChar(char *ch) {
         strcpy(myChar,ch);
@@ -65,9 +63,14 @@ public:
         return *this == other || *this > other;
     }
 
-    friend std::istream &operator>>(std::istream &in,MyChar &obj) {
+    friend istream &operator>>(istream &in,MyChar &obj) {
         in >> obj.myChar;
         return in;
     }
+
+    friend ostream &operator<<(ostream &out,const MyChar &obj) {
+        out << obj.myChar;
+        return out;
+    }
 };
-#endif //MYSTRING_H
+#endif //MYCHAR_H

@@ -10,7 +10,6 @@ set(CMAKE_DEPENDS_LANGUAGES
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/mnt/c/Users/43741/Ticket-System/BPT/CommandParser.cpp" "CMakeFiles/code.dir/BPT/CommandParser.cpp.o" "gcc" "CMakeFiles/code.dir/BPT/CommandParser.cpp.o.d"
   "/mnt/c/Users/43741/Ticket-System/main.cpp" "CMakeFiles/code.dir/main.cpp.o" "gcc" "CMakeFiles/code.dir/main.cpp.o.d"
-  "/mnt/c/Users/43741/Ticket-System/src/User.cpp" "CMakeFiles/code.dir/src/User.cpp.o" "gcc" "CMakeFiles/code.dir/src/User.cpp.o.d"
   )
 
 # Targets to which this target links.

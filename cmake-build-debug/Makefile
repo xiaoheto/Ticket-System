@@ -177,30 +177,6 @@ main.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/main.cpp.s
 .PHONY : main.cpp.s
 
-src/User.o: src/User.cpp.o
-.PHONY : src/User.o
-
-# target to build an object file
-src/User.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/User.cpp.o
-.PHONY : src/User.cpp.o
-
-src/User.i: src/User.cpp.i
-.PHONY : src/User.i
-
-# target to preprocess a source file
-src/User.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/User.cpp.i
-.PHONY : src/User.cpp.i
-
-src/User.s: src/User.cpp.s
-.PHONY : src/User.s
-
-# target to generate assembly for a file
-src/User.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/User.cpp.s
-.PHONY : src/User.cpp.s
-
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -216,9 +192,6 @@ help:
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
-	@echo "... src/User.o"
-	@echo "... src/User.i"
-	@echo "... src/User.s"
 .PHONY : help
 
 
