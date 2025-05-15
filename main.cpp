@@ -23,7 +23,7 @@ int main() {
     std::ios::sync_with_stdio(false);
     std::cin.tie(nullptr);
 
-    BPlusTree<MyChar<65>,int> db;
+    BPTree<MyChar<65>,int> db;
 
     int n;
     std::cin >> n;
