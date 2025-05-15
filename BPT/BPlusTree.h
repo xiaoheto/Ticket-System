@@ -1,10 +1,11 @@
 #include <string>
+#include <sstream>
 #include <fstream>
+#include <cassert>
+#include <random>
+#include <cstddef>
+#include <iostream>
 #include <cstring>
-
-#include "vector.h"
-#include "MyChar.h"
-#include "MemoryRiver.h"
 using std::string;
 using std::fstream;
 using std::ifstream;
@@ -16,18 +17,90 @@ using std::string;
 using std::fstream;
 using std::ifstream;
 using std::ofstream;
+
+#include "vector.h";
+#include "MyChar.h"
 using sjtu::vector;
 
-template<typename K,typename T>
+template<class T, int info_len = 2>
+class MemoryRiver {
+    fstream file;
+    string file_name;
+    int sizeofT = sizeof(T);
+
+public:
+    MemoryRiver() = default;
+
+    MemoryRiver(string file_name) : file_name(file_name) {}
+
+    void initialise(const string &FN = "") {
+        if (!FN.empty())
+            file_name = FN;
+        file.open(file_name);
+        if (!file) {
+            file.open(file_name, std::ios::out);
+            file.close();
+            file.open(file_name, std::ios::in | std::ios::out);
+            int tmp = -1, tmp2 = 0;
+            file.write(reinterpret_cast<char *>(&tmp), sizeof(int));
+            for (int i = 1; i < info_len; ++i)
+                file.write(reinterpret_cast<char *>(&tmp2), sizeof(int));
+        } else {
+        }
+    }
+
+    void get_info(int &tmp, int n) {
+        if (n > info_len) return;
+        file.seekg((n - 1) * sizeof(int), std::ios::beg);
+        file.read(reinterpret_cast<char *>(&tmp), sizeof(int));
+    }
+
+    void write_info(int tmp, int n) {
+        if (n > info_len) return;
+        file.seekp((n - 1) * sizeof(int), std::ios::beg);
+        file.write(reinterpret_cast<char *>(&tmp), sizeof(int));
+    }
+
+    int write(T &t) {
+        file.seekp(0, std::ios::end);
+        int index = file.tellp();
+        index = (index - info_len * sizeof(int)) / sizeofT;
+        update(t, index);
+        return index;
+    }
+
+    int getindex() {
+        file.seekp(0, std::ios::end);
+        int index = file.tellp();
+        index = (index - info_len * sizeof(int)) / sizeofT;
+        return index;
+    }
+
+    void update(T &t, const int index) {
+        file.seekp(info_len * sizeof(int) + index * sizeofT);
+        file.write(reinterpret_cast<char *>(&t), sizeofT);
+    }
+
+    void read(T &t, const int index) {
+        file.seekg(info_len * sizeof(int) + index * sizeofT);
+        file.read(reinterpret_cast<char *>(&t), sizeofT);
+    }
+
+    void end(){
+        file.close();
+    }
+};
+
+template<class K,class T>
 struct KVPair {
     K index;
     T value;
 
     KVPair() = default;
 
-    KVPair(const K &other, T val) {
-        index = other;
-        value = val;
+    KVPair(K index, T value) {
+        this->index = index;
+        this->value = value;
     }
 
     KVPair(const KVPair &other) {
@@ -36,7 +109,7 @@ struct KVPair {
     }
 
     bool operator==(const KVPair &other) const {
-        return index == other.index && value == other.value;
+        return index ==  other.index && value == other.value;
     }
 
     bool operator!=(const KVPair &other) const {
@@ -66,18 +139,18 @@ struct KVPair {
     }
 };
 
-template<class K,class T,int MAX = 120,int MIN = MAX / 2>
+template<typename K,typename T,int MAX = 150,int MIN = MAX / 2>
 class BPTree {
     class Node {
         bool Is_leaf;
         int size;
-        KVPair<K,T> kv_pair[MAX + 2];
+        KVPair<K,T> key_value[MAX + 2];
         int ptr[MAX + 2];
         int brother;
         friend class BPTree;
 
     public:
-        Node() : kv_pair(), ptr(), brother(0) {
+        Node() : key_value(), ptr(), brother(0) {
             for (int i = 0; i < MAX + 1; i++) {
                 ptr[i] = 0;
             }
@@ -94,32 +167,32 @@ private:
             int l = 0, r = cursor.size;
             while (l < r) {
                 int mid = (l + r) >> 1;
-                if (cursor.kv_pair[mid] > kv) {
+                if (cursor.key_value[mid] > kv) {
                     r = mid;
                 } else {
                     l = mid + 1;
                 }
             }
 
-            if (l > 0 && cursor.kv_pair[l - 1] == kv)
+            if (l > 0 && cursor.key_value[l - 1] == kv)
                 return false;
 
             if (cursor.size < MAX) {
                 for (int i = cursor.size - 1; i >= l; --i) {
-                    cursor.kv_pair[i + 1] = cursor.kv_pair[i];
+                    cursor.key_value[i + 1] = cursor.key_value[i];
                 }
                 cursor.size++;
-                cursor.kv_pair[l] = kv;
+                cursor.key_value[l] = kv;
                 MR.update(cursor, pos);
                 return false;
             }
 
             for (int i = cursor.size - 1; i >= l; --i) {
-                cursor.kv_pair[i + 1] = cursor.kv_pair[i];
+                cursor.key_value[i + 1] = cursor.key_value[i];
             }
             cursor.size++;
-            cursor.kv_pair[l] = kv;
-            int newpos = MR.get_index();
+            cursor.key_value[l] = kv;
+            int newpos = MR.getindex();
 
             static Node newbro;
             newbro.Is_leaf = true;
@@ -127,7 +200,7 @@ private:
             newbro.brother = cursor.brother;
             cursor.brother = newpos;
             for (int i = 0; i <= MIN; ++i) {
-                newbro.kv_pair[i] = cursor.kv_pair[i + MIN];
+                newbro.key_value[i] = cursor.key_value[i + MIN];
             }
 
             cursor.size = MIN;
@@ -136,31 +209,34 @@ private:
                 static Node newroot;
                 newroot.Is_leaf = false;
                 newroot.size = 1;
-                newroot.kv_pair[0] = cursor.kv_pair[MIN];
+                newroot.key_value[0] = cursor.key_value[MIN];
                 newroot.ptr[0] = pos;
                 newroot.ptr[1] = newpos;
 
                 MR.update(cursor, pos);
                 MR.update(newbro, newpos);
-                int rootpos = MR.get_index();
+                int rootpos = MR.getindex();
                 MR.write(newroot);
                 root = rootpos;
                 return false;
             }
             MR.update(cursor, pos);
             MR.update(newbro, newpos);
-            pass = newbro.kv_pair[0];
+            pass = newbro.key_value[0];
             return true;
         }
 
         int l = 0, r = cursor.size;
         while (l < r) {
             int mid = (l + r) >> 1;
-            if (cursor.kv_pair[mid] >= kv) {
+            if (cursor.key_value[mid] >= kv) {
                 r = mid;
             } else {
                 l = mid + 1;
             }
+        }
+        if (l < cursor.size && cursor.key_value[l] == kv) {
+            ++l;
         }
 
         Node child;
@@ -171,30 +247,30 @@ private:
             return false;
         if (cursor.size < MAX) {
             for (int i = cursor.size - 1; i >= l; --i) {
-                cursor.kv_pair[i + 1] = cursor.kv_pair[i];
+                cursor.key_value[i + 1] = cursor.key_value[i];
                 cursor.ptr[i + 2] = cursor.ptr[i + 1];
             }
             cursor.size++;
-            cursor.kv_pair[l] = pass;
-            cursor.ptr[l + 1] = MR.get_index()-1;
+            cursor.key_value[l] = pass;
+            cursor.ptr[l + 1] = MR.getindex()-1;
             MR.update(cursor, pos);
             return false;
         }
         for (int i = cursor.size - 1; i >= l; --i) {
-            cursor.kv_pair[i + 1] = cursor.kv_pair[i];
+            cursor.key_value[i + 1] = cursor.key_value[i];
             cursor.ptr[i + 2] = cursor.ptr[i + 1];
         }
         ++cursor.size;
-        cursor.kv_pair[l] = pass;
-        cursor.ptr[l + 1] = MR.get_index()-1;
+        cursor.key_value[l] = pass;
+        cursor.ptr[l + 1] = MR.getindex()-1;
 
-        int newpos = MR.get_index();
-        pass = cursor.kv_pair[MIN];
+        int newpos = MR.getindex();
+        pass = cursor.key_value[MIN];
         static Node newbro;
         newbro.Is_leaf = false;
         newbro.size = MIN;
         for (int i = 0; i < MIN; ++i) {
-            newbro.kv_pair[i] = cursor.kv_pair[i + MIN + 1];
+            newbro.key_value[i] = cursor.key_value[i + MIN + 1];
             newbro.ptr[i] = cursor.ptr[i + MIN + 1];
         }
         newbro.ptr[MIN] = cursor.ptr[cursor.size];
@@ -204,7 +280,7 @@ private:
             static Node newroot;
             newroot.Is_leaf = false;
             newroot.size = 1;
-            newroot.kv_pair[0] = pass;
+            newroot.key_value[0] = pass;
             newroot.ptr[0] = pos;
             newroot.ptr[1] = newpos;
             MR.update(cursor, pos);
@@ -222,18 +298,18 @@ private:
             int l = 0, r = cursor.size;
             while (l < r) {
                 int mid = (l + r) >> 1;
-                if (cursor.kv_pair[mid] > kv) {
+                if (cursor.key_value[mid] > kv) {
                     r = mid;
                 } else {
                     l = mid + 1;
                 }
             }
             --l;
-            if (l < 0 || l >= cursor.size || cursor.kv_pair[l] != kv) {
+            if (l < 0 || l >= cursor.size || cursor.key_value[l] != kv) {
                 return false;
             }
             for (int i = l + 1; i < cursor.size; ++i) {
-                cursor.kv_pair[i - 1] = cursor.kv_pair[i];
+                cursor.key_value[i - 1] = cursor.key_value[i];
             }
             --cursor.size;
             if (pos == root) {
@@ -249,13 +325,13 @@ private:
         int l = 0, r = cursor.size;
         while (l < r) {
             int mid = (l + r) >> 1;
-            if (cursor.kv_pair[mid] >= kv) {
+            if (cursor.key_value[mid] >= kv) {
                 r = mid;
             } else {
                 l = mid + 1;
             }
         }
-        if (l < cursor.size && kv == cursor.kv_pair[l]) {
+        if (l < cursor.size && kv == cursor.key_value[l]) {
             ++l;
         }
         Node child;
@@ -272,7 +348,7 @@ private:
                 MR.read(newbro[1], cursor.ptr[1]);
                 if (newbro[0].Is_leaf) {
                     for (int i = 0; i < newbro[1].size; ++i) {
-                        newbro[0].kv_pair[i + newbro[0].size] = newbro[1].kv_pair[i];
+                        newbro[0].key_value[i + newbro[0].size] = newbro[1].key_value[i];
                     }
                     newbro[0].size += newbro[1].size;
                     newbro[0].brother = newbro[1].brother;
@@ -281,11 +357,11 @@ private:
                     return false;
                 }
                 for (int i = 0; i < newbro[1].size; ++i) {
-                    newbro[0].kv_pair[i + newbro[0].size + 1] = newbro[1].kv_pair[i];
+                    newbro[0].key_value[i + newbro[0].size + 1] = newbro[1].key_value[i];
                     newbro[0].ptr[i + newbro[0].size + 1] = newbro[1].ptr[i];
                 }
                 newbro[0].ptr[newbro[0].size + newbro[1].size + 1] = newbro[1].ptr[newbro[1].size];
-                newbro[0].kv_pair[newbro[0].size] = cursor.kv_pair[0];
+                newbro[0].key_value[newbro[0].size] = cursor.key_value[0];
                 newbro[0].size += newbro[1].size + 1;
                 root = cursor.ptr[0];
                 MR.update(newbro[0], cursor.ptr[0]);
@@ -299,12 +375,12 @@ private:
                 if (child.Is_leaf) {
                     MR.read(newbro, cursor.ptr[l - 1]);
                     for (int i = child.size - 1; i >= 0; --i) {
-                        child.kv_pair[i + 1] = child.kv_pair[i];
+                        child.key_value[i + 1] = child.key_value[i];
                     }
-                    child.kv_pair[0] = newbro.kv_pair[newbro.size - 1];
+                    child.key_value[0] = newbro.key_value[newbro.size - 1];
                     ++child.size;
                     --newbro.size;
-                    cursor.kv_pair[l - 1] = child.kv_pair[0];
+                    cursor.key_value[l - 1] = child.key_value[0];
                     MR.update(cursor, pos);
                     MR.update(newbro, cursor.ptr[l - 1]);
                     MR.update(child, cursor.ptr[l]);
@@ -312,14 +388,14 @@ private:
                 }
                 MR.read(newbro, cursor.ptr[l - 1]);
                 for (int i = child.size; i >= 1; --i) {
-                    child.kv_pair[i] = child.kv_pair[i - 1];
+                    child.key_value[i] = child.key_value[i - 1];
                     child.ptr[i + 1] = child.ptr[i];
                 }
                 child.ptr[1] = child.ptr[0];
                 ++child.size;
-                child.kv_pair[0] = cursor.kv_pair[l - 1];
+                child.key_value[0] = cursor.key_value[l - 1];
                 child.ptr[0] = newbro.ptr[newbro.size];
-                cursor.kv_pair[l - 1] = newbro.kv_pair[newbro.size - 1];
+                cursor.key_value[l - 1] = newbro.key_value[newbro.size - 1];
                 --newbro.size;
                 MR.update(cursor, pos);
                 MR.update(newbro, cursor.ptr[l - 1]);
@@ -329,12 +405,12 @@ private:
             if (child.Is_leaf) {
                 MR.read(newbro, cursor.ptr[l - 1]);
                 for (int i = 0; i < child.size; ++i) {
-                    newbro.kv_pair[i + newbro.size] = child.kv_pair[i];
+                    newbro.key_value[i + newbro.size] = child.key_value[i];
                 }
                 newbro.size += child.size;
                 newbro.brother = child.brother;
                 for (int i = l; i < cursor.size; ++i) {
-                    cursor.kv_pair[i - 1] = cursor.kv_pair[i];
+                    cursor.key_value[i - 1] = cursor.key_value[i];
                     cursor.ptr[i] = cursor.ptr[i + 1];
                 }
                 --cursor.size;
@@ -347,14 +423,14 @@ private:
             }
             MR.read(newbro, cursor.ptr[l - 1]);
             for (int i = 0; i < child.size; ++i) {
-                newbro.kv_pair[i + newbro.size + 1] = child.kv_pair[i];
+                newbro.key_value[i + newbro.size + 1] = child.key_value[i];
                 newbro.ptr[i + newbro.size + 1] = child.ptr[i];
             }
             newbro.ptr[newbro.size + child.size + 1] = child.ptr[child.size];
-            newbro.kv_pair[newbro.size] = cursor.kv_pair[l - 1];
+            newbro.key_value[newbro.size] = cursor.key_value[l - 1];
             newbro.size += child.size + 1;
             for (int i = l - 1; i < cursor.size - 1; ++i) {
-                cursor.kv_pair[i] = cursor.kv_pair[i + 1];
+                cursor.key_value[i] = cursor.key_value[i + 1];
                 cursor.ptr[i + 1] = cursor.ptr[i + 2];
             }
             --cursor.size;
@@ -369,25 +445,25 @@ private:
             if (newbro.size > MIN) {
                 if (child.Is_leaf) {
                     MR.read(newbro, cursor.ptr[l + 1]);
-                    child.kv_pair[child.size] = newbro.kv_pair[0];
+                    child.key_value[child.size] = newbro.key_value[0];
                     ++child.size;
                     for (int i = 0; i < newbro.size - 1; ++i) {
-                        newbro.kv_pair[i] = newbro.kv_pair[i + 1];
+                        newbro.key_value[i] = newbro.key_value[i + 1];
                     }
                     --newbro.size;
-                    cursor.kv_pair[l] = newbro.kv_pair[0];
+                    cursor.key_value[l] = newbro.key_value[0];
                     MR.update(cursor, pos);
                     MR.update(child, cursor.ptr[l]);
                     MR.update(newbro, cursor.ptr[l + 1]);
                     return false;
                 }
                 MR.read(newbro, cursor.ptr[l + 1]);
-                child.kv_pair[child.size] = cursor.kv_pair[l];
+                child.key_value[child.size] = cursor.key_value[l];
                 child.ptr[child.size + 1] = newbro.ptr[0];
                 ++child.size;
-                cursor.kv_pair[l] = newbro.kv_pair[0];
+                cursor.key_value[l] = newbro.key_value[0];
                 for (int i = 0; i < newbro.size - 1; ++i) {
-                    newbro.kv_pair[i] = newbro.kv_pair[i + 1];
+                    newbro.key_value[i] = newbro.key_value[i + 1];
                     newbro.ptr[i] = newbro.ptr[i + 1];
                 }
                 newbro.ptr[newbro.size - 1] = newbro.ptr[newbro.size];
@@ -400,12 +476,12 @@ private:
             if (child.Is_leaf) {
                 MR.read(newbro, cursor.ptr[l + 1]);
                 for (int i = 0; i < newbro.size; ++i) {
-                    child.kv_pair[i + child.size] = newbro.kv_pair[i];
+                    child.key_value[i + child.size] = newbro.key_value[i];
                 }
                 child.size += newbro.size;
                 child.brother = newbro.brother;
                 for (int i = l; i < cursor.size - 1; ++i) {
-                    cursor.kv_pair[i] = cursor.kv_pair[i + 1];
+                    cursor.key_value[i] = cursor.key_value[i + 1];
                     cursor.ptr[i + 1] = cursor.ptr[i + 2];
                 }
                 --cursor.size;
@@ -418,14 +494,14 @@ private:
             }
             MR.read(newbro, cursor.ptr[l + 1]);
             for (int i = 0; i < newbro.size; ++i) {
-                child.kv_pair[i + child.size + 1] = newbro.kv_pair[i];
+                child.key_value[i + child.size + 1] = newbro.key_value[i];
                 child.ptr[i + child.size + 1] = newbro.ptr[i];
             }
             child.ptr[child.size + newbro.size + 1] = newbro.ptr[newbro.size];
-            child.kv_pair[child.size] = cursor.kv_pair[l];
+            child.key_value[child.size] = cursor.key_value[l];
             child.size += newbro.size + 1;
             for (int i = l; i < cursor.size - 1; ++i) {
-                cursor.kv_pair[i] = cursor.kv_pair[i + 1];
+                cursor.key_value[i] = cursor.key_value[i + 1];
                 cursor.ptr[i + 1] = cursor.ptr[i + 2];
             }
             --cursor.size;
@@ -456,9 +532,9 @@ public:
 
     void insert(K index, T value) {
         KVPair<K,T> kv(index, value);
-        if (root == -1) {//空树
+        if (root == -1) {
             Node x;
-            x.kv_pair[0] = kv;
+            x.key_value[0] = kv;
             x.size = 1;
             x.Is_leaf = true;
             x.brother = -1;
@@ -489,7 +565,7 @@ public:
         while (!cursor.Is_leaf) {
             int i=0;
             for (; i < cursor.size; i++) {
-                if (index <= cursor.kv_pair[i].index && (i - 1 == -1 || index >= cursor.kv_pair[i - 1].index)) {
+                if ((index <= cursor.key_value[i].index) && (i - 1 == -1 || index >= cursor.key_value[i - 1].index)) {
                     break;
                 }
             }
@@ -504,11 +580,11 @@ public:
                 i = -1;
                 continue;
             }
-            if (index < cursor.kv_pair[i].index) {
+            if (index < cursor.key_value[i].index) {
                 break;
             }
-            if (index == cursor.kv_pair[i].index) {
-                ans.push_back(cursor.kv_pair[i].value);
+            if (index == cursor.key_value[i].index) {
+                ans.push_back(cursor.key_value[i].value);
                 continue;
             }
         }
