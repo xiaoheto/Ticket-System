@@ -18,14 +18,14 @@ using std::ifstream;
 using std::ofstream;
 using sjtu::vector;
 
-template<typename T,int length>
+template<typename K,typename T>
 struct KVPair {
-    MyChar<length> index;
+    K index;
     T value;
 
     KVPair() = default;
 
-    KVPair(MyChar<length> &other, T val) {
+    KVPair(const K &other, T val) {
         index = other;
         value = val;
     }
@@ -66,12 +66,12 @@ struct KVPair {
     }
 };
 
-template<class T,int MAX = 120,int MIN = MAX / 2,int index_length = 65>
+template<class K,class T,int MAX = 120,int MIN = MAX / 2,int index_length = 65>
 class BPlusTree {
     class Node {
-        bool is_leaf;
-        int size;
-        KVPair<T,index_length> kv_pair[MAX + 2];
+        bool is_leaf = false;
+        int size = 0;
+        KVPair<K,T> kv_pair[MAX + 2];
         int sib;
         int son[MAX + 2];
         friend class BPlusTree;
@@ -86,10 +86,10 @@ class BPlusTree {
 
     int root;
     MemoryRiver<Node> base_file;
-    KVPair<T,index_length> pass;
+    KVPair<K,T> pass;
 
     //find the first pos that is larger than kv
-    int findPos(int l, int r, Node node, KVPair<T,index_length> kv) {
+    int findPos(int l, int r, Node node, KVPair<K,T> kv) {
         while (l < r) {
             int mid = (l + r) / 2;
             if (node.kv_pair[mid] > kv) {
@@ -101,7 +101,7 @@ class BPlusTree {
         return l;
     }
 
-    bool Insert(Node cur_node, int pos, KVPair<T,index_length> kv) {
+    bool Insert(Node cur_node, int pos, KVPair<K,T> kv) {
         if (cur_node.is_leaf) {
             int l = findPos(0, cur_node.size, cur_node, kv);
 
@@ -113,7 +113,7 @@ class BPlusTree {
                 for (int i = cur_node.size - 1; i >= l; --i) {
                     cur_node.kv_pair[i + 1] = cur_node.kv_pair[i];
                 }
-                cur_node.size++;
+                ++cur_node.size;
                 cur_node.kv_pair[l] = kv;
                 base_file.update(cur_node, pos);
                 return false;
@@ -122,39 +122,39 @@ class BPlusTree {
             for (int i = cur_node.size - 1; i >= l; --i) {
                 cur_node.kv_pair[i + 1] = cur_node.kv_pair[i];
             }
-            cur_node.size++;
+            ++cur_node.size;
             cur_node.kv_pair[l] = kv;
-            int newpos = base_file.get_index();
+            int new_pos = base_file.get_index();
 
-            static Node newbro;
-            newbro.is_leaf = true;
-            newbro.size = MIN + 1;
-            newbro.sib = cur_node.sib;
-            cur_node.sib = newpos;
+            static Node new_sib;
+            new_sib.is_leaf = true;
+            new_sib.size = MIN + 1;
+            new_sib.sib = cur_node.sib;
+            cur_node.sib = new_pos;
             for (int i = 0; i <= MIN; ++i) {
-                newbro.kv_pair[i] = cur_node.kv_pair[i + MIN];
+                new_sib.kv_pair[i] = cur_node.kv_pair[i + MIN];
             }
 
             cur_node.size = MIN;
             if (root == pos) {
 
-                static Node newroot;
-                newroot.is_leaf = false;
-                newroot.size = 1;
-                newroot.kv_pair[0] = cur_node.kv_pair[MIN];
-                newroot.son[0] = pos;
-                newroot.son[1] = newpos;
+                static Node new_root;
+                new_root.is_leaf = false;
+                new_root.size = 1;
+                new_root.kv_pair[0] = cur_node.kv_pair[MIN];
+                new_root.son[0] = pos;
+                new_root.son[1] = new_pos;
 
                 base_file.update(cur_node, pos);
-                base_file.update(newbro, newpos);
+                base_file.update(new_sib, new_pos);
                 int rootpos = base_file.get_index();
-                base_file.write(newroot);
+                base_file.write(new_root);
                 root = rootpos;
                 return false;
             }
             base_file.update(cur_node, pos);
-            base_file.update(newbro, newpos);
-            pass = newbro.kv_pair[0];
+            base_file.update(new_sib, new_pos);
+            pass = new_sib.kv_pair[0];
             return true;
         }
 
@@ -175,7 +175,7 @@ class BPlusTree {
                 cur_node.kv_pair[i + 1] = cur_node.kv_pair[i];
                 cur_node.son[i + 2] = cur_node.son[i + 1];
             }
-            cur_node.size++;
+            ++cur_node.size;
             cur_node.kv_pair[l] = pass;
             cur_node.son[l + 1] = base_file.get_index()-1;
             base_file.update(cur_node, pos);
@@ -189,7 +189,7 @@ class BPlusTree {
         cur_node.kv_pair[l] = pass;
         cur_node.son[l + 1] = base_file.get_index()-1;
 
-        int newpos = base_file.get_index();
+        int new_pos = base_file.get_index();
         pass = cur_node.kv_pair[MIN];
         static Node newbro;
         newbro.is_leaf = false;
@@ -207,18 +207,18 @@ class BPlusTree {
             newroot.size = 1;
             newroot.kv_pair[0] = pass;
             newroot.son[0] = pos;
-            newroot.son[1] = newpos;
+            newroot.son[1] = new_pos;
             base_file.update(cur_node, pos);
-            base_file.update(newbro, newpos);
+            base_file.update(newbro, new_pos);
             root = base_file.write(newroot);
             return false;
         }
         base_file.update(cur_node, pos);
-        base_file.update(newbro, newpos);
+        base_file.update(newbro, new_pos);
         return true;
     }
 
-    bool Delete(Node &cur_node, int pos, const KVPair<T,index_length> &kv) {
+    bool Delete(Node &cur_node, int pos, const KVPair<K,T> &kv) {
         if (cur_node.is_leaf) {
             int l = findPos(0,cur_node.size,cur_node,kv);
             --l;
@@ -441,7 +441,7 @@ public:
     }
 
     void insert(MyChar<index_length> index, T value) {
-        KVPair<T,index_length> kv(index, value);
+        KVPair<K,T> kv(index, value);
         if (root == -1) {
             Node x;
             x.kv_pair[0] = kv;
@@ -460,7 +460,7 @@ public:
         if (root == -1) {
             return;
         }
-        KVPair<T,index_length> kv(index, value);
+        KVPair<K,T> kv(index, value);
         Node cur_node;
         base_file.read(cur_node, root);
         Delete(cur_node, root, kv);

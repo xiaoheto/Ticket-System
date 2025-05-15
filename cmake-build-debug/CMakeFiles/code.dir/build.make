@@ -83,81 +83,17 @@ CMakeFiles/code.dir/main.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/code.dir/main.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /mnt/c/Users/43741/Ticket-System/main.cpp -o CMakeFiles/code.dir/main.cpp.s
 
-CMakeFiles/code.dir/BPT/CommandParser.cpp.o: CMakeFiles/code.dir/flags.make
-CMakeFiles/code.dir/BPT/CommandParser.cpp.o: ../BPT/CommandParser.cpp
-CMakeFiles/code.dir/BPT/CommandParser.cpp.o: CMakeFiles/code.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/mnt/c/Users/43741/Ticket-System/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/code.dir/BPT/CommandParser.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/code.dir/BPT/CommandParser.cpp.o -MF CMakeFiles/code.dir/BPT/CommandParser.cpp.o.d -o CMakeFiles/code.dir/BPT/CommandParser.cpp.o -c /mnt/c/Users/43741/Ticket-System/BPT/CommandParser.cpp
-
-CMakeFiles/code.dir/BPT/CommandParser.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/code.dir/BPT/CommandParser.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /mnt/c/Users/43741/Ticket-System/BPT/CommandParser.cpp > CMakeFiles/code.dir/BPT/CommandParser.cpp.i
-
-CMakeFiles/code.dir/BPT/CommandParser.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/code.dir/BPT/CommandParser.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /mnt/c/Users/43741/Ticket-System/BPT/CommandParser.cpp -o CMakeFiles/code.dir/BPT/CommandParser.cpp.s
-
-CMakeFiles/code.dir/src/UserManagement.cpp.o: CMakeFiles/code.dir/flags.make
-CMakeFiles/code.dir/src/UserManagement.cpp.o: ../src/UserManagement.cpp
-CMakeFiles/code.dir/src/UserManagement.cpp.o: CMakeFiles/code.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/mnt/c/Users/43741/Ticket-System/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/code.dir/src/UserManagement.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/code.dir/src/UserManagement.cpp.o -MF CMakeFiles/code.dir/src/UserManagement.cpp.o.d -o CMakeFiles/code.dir/src/UserManagement.cpp.o -c /mnt/c/Users/43741/Ticket-System/src/UserManagement.cpp
-
-CMakeFiles/code.dir/src/UserManagement.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/code.dir/src/UserManagement.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /mnt/c/Users/43741/Ticket-System/src/UserManagement.cpp > CMakeFiles/code.dir/src/UserManagement.cpp.i
-
-CMakeFiles/code.dir/src/UserManagement.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/code.dir/src/UserManagement.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /mnt/c/Users/43741/Ticket-System/src/UserManagement.cpp -o CMakeFiles/code.dir/src/UserManagement.cpp.s
-
-CMakeFiles/code.dir/src/TrainManagement.cpp.o: CMakeFiles/code.dir/flags.make
-CMakeFiles/code.dir/src/TrainManagement.cpp.o: ../src/TrainManagement.cpp
-CMakeFiles/code.dir/src/TrainManagement.cpp.o: CMakeFiles/code.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/mnt/c/Users/43741/Ticket-System/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/code.dir/src/TrainManagement.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/code.dir/src/TrainManagement.cpp.o -MF CMakeFiles/code.dir/src/TrainManagement.cpp.o.d -o CMakeFiles/code.dir/src/TrainManagement.cpp.o -c /mnt/c/Users/43741/Ticket-System/src/TrainManagement.cpp
-
-CMakeFiles/code.dir/src/TrainManagement.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/code.dir/src/TrainManagement.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /mnt/c/Users/43741/Ticket-System/src/TrainManagement.cpp > CMakeFiles/code.dir/src/TrainManagement.cpp.i
-
-CMakeFiles/code.dir/src/TrainManagement.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/code.dir/src/TrainManagement.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /mnt/c/Users/43741/Ticket-System/src/TrainManagement.cpp -o CMakeFiles/code.dir/src/TrainManagement.cpp.s
-
-CMakeFiles/code.dir/src/Time.cpp.o: CMakeFiles/code.dir/flags.make
-CMakeFiles/code.dir/src/Time.cpp.o: ../src/Time.cpp
-CMakeFiles/code.dir/src/Time.cpp.o: CMakeFiles/code.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/mnt/c/Users/43741/Ticket-System/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/code.dir/src/Time.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/code.dir/src/Time.cpp.o -MF CMakeFiles/code.dir/src/Time.cpp.o.d -o CMakeFiles/code.dir/src/Time.cpp.o -c /mnt/c/Users/43741/Ticket-System/src/Time.cpp
-
-CMakeFiles/code.dir/src/Time.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/code.dir/src/Time.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /mnt/c/Users/43741/Ticket-System/src/Time.cpp > CMakeFiles/code.dir/src/Time.cpp.i
-
-CMakeFiles/code.dir/src/Time.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/code.dir/src/Time.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /mnt/c/Users/43741/Ticket-System/src/Time.cpp -o CMakeFiles/code.dir/src/Time.cpp.s
-
 # Object files for target code
 code_OBJECTS = \
-"CMakeFiles/code.dir/main.cpp.o" \
-"CMakeFiles/code.dir/BPT/CommandParser.cpp.o" \
-"CMakeFiles/code.dir/src/UserManagement.cpp.o" \
-"CMakeFiles/code.dir/src/TrainManagement.cpp.o" \
-"CMakeFiles/code.dir/src/Time.cpp.o"
+"CMakeFiles/code.dir/main.cpp.o"
 
 # External object files for target code
 code_EXTERNAL_OBJECTS =
 
 code: CMakeFiles/code.dir/main.cpp.o
-code: CMakeFiles/code.dir/BPT/CommandParser.cpp.o
-code: CMakeFiles/code.dir/src/UserManagement.cpp.o
-code: CMakeFiles/code.dir/src/TrainManagement.cpp.o
-code: CMakeFiles/code.dir/src/Time.cpp.o
 code: CMakeFiles/code.dir/build.make
 code: CMakeFiles/code.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/mnt/c/Users/43741/Ticket-System/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Linking CXX executable code"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/mnt/c/Users/43741/Ticket-System/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable code"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/code.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

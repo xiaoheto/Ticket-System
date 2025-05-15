@@ -129,30 +129,6 @@ code/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/build
 .PHONY : code/fast
 
-BPT/CommandParser.o: BPT/CommandParser.cpp.o
-.PHONY : BPT/CommandParser.o
-
-# target to build an object file
-BPT/CommandParser.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/BPT/CommandParser.cpp.o
-.PHONY : BPT/CommandParser.cpp.o
-
-BPT/CommandParser.i: BPT/CommandParser.cpp.i
-.PHONY : BPT/CommandParser.i
-
-# target to preprocess a source file
-BPT/CommandParser.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/BPT/CommandParser.cpp.i
-.PHONY : BPT/CommandParser.cpp.i
-
-BPT/CommandParser.s: BPT/CommandParser.cpp.s
-.PHONY : BPT/CommandParser.s
-
-# target to generate assembly for a file
-BPT/CommandParser.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/BPT/CommandParser.cpp.s
-.PHONY : BPT/CommandParser.cpp.s
-
 main.o: main.cpp.o
 .PHONY : main.o
 
@@ -177,78 +153,6 @@ main.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/main.cpp.s
 .PHONY : main.cpp.s
 
-src/Time.o: src/Time.cpp.o
-.PHONY : src/Time.o
-
-# target to build an object file
-src/Time.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/Time.cpp.o
-.PHONY : src/Time.cpp.o
-
-src/Time.i: src/Time.cpp.i
-.PHONY : src/Time.i
-
-# target to preprocess a source file
-src/Time.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/Time.cpp.i
-.PHONY : src/Time.cpp.i
-
-src/Time.s: src/Time.cpp.s
-.PHONY : src/Time.s
-
-# target to generate assembly for a file
-src/Time.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/Time.cpp.s
-.PHONY : src/Time.cpp.s
-
-src/TrainManagement.o: src/TrainManagement.cpp.o
-.PHONY : src/TrainManagement.o
-
-# target to build an object file
-src/TrainManagement.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/TrainManagement.cpp.o
-.PHONY : src/TrainManagement.cpp.o
-
-src/TrainManagement.i: src/TrainManagement.cpp.i
-.PHONY : src/TrainManagement.i
-
-# target to preprocess a source file
-src/TrainManagement.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/TrainManagement.cpp.i
-.PHONY : src/TrainManagement.cpp.i
-
-src/TrainManagement.s: src/TrainManagement.cpp.s
-.PHONY : src/TrainManagement.s
-
-# target to generate assembly for a file
-src/TrainManagement.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/TrainManagement.cpp.s
-.PHONY : src/TrainManagement.cpp.s
-
-src/UserManagement.o: src/UserManagement.cpp.o
-.PHONY : src/UserManagement.o
-
-# target to build an object file
-src/UserManagement.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/UserManagement.cpp.o
-.PHONY : src/UserManagement.cpp.o
-
-src/UserManagement.i: src/UserManagement.cpp.i
-.PHONY : src/UserManagement.i
-
-# target to preprocess a source file
-src/UserManagement.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/UserManagement.cpp.i
-.PHONY : src/UserManagement.cpp.i
-
-src/UserManagement.s: src/UserManagement.cpp.s
-.PHONY : src/UserManagement.s
-
-# target to generate assembly for a file
-src/UserManagement.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/UserManagement.cpp.s
-.PHONY : src/UserManagement.cpp.s
-
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -258,21 +162,9 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... code"
-	@echo "... BPT/CommandParser.o"
-	@echo "... BPT/CommandParser.i"
-	@echo "... BPT/CommandParser.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
-	@echo "... src/Time.o"
-	@echo "... src/Time.i"
-	@echo "... src/Time.s"
-	@echo "... src/TrainManagement.o"
-	@echo "... src/TrainManagement.i"
-	@echo "... src/TrainManagement.s"
-	@echo "... src/UserManagement.o"
-	@echo "... src/UserManagement.i"
-	@echo "... src/UserManagement.s"
 .PHONY : help
 
 

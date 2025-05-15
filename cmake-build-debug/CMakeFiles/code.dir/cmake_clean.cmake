@@ -1,14 +1,6 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/code.dir/BPT/CommandParser.cpp.o"
-  "CMakeFiles/code.dir/BPT/CommandParser.cpp.o.d"
   "CMakeFiles/code.dir/main.cpp.o"
   "CMakeFiles/code.dir/main.cpp.o.d"
-  "CMakeFiles/code.dir/src/Time.cpp.o"
-  "CMakeFiles/code.dir/src/Time.cpp.o.d"
-  "CMakeFiles/code.dir/src/TrainManagement.cpp.o"
-  "CMakeFiles/code.dir/src/TrainManagement.cpp.o.d"
-  "CMakeFiles/code.dir/src/UserManagement.cpp.o"
-  "CMakeFiles/code.dir/src/UserManagement.cpp.o.d"
   "code"
   "code.pdb"
 )
