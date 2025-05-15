@@ -1,11 +1,8 @@
 #include <string>
 #include <sstream>
 #include <fstream>
-#include <cassert>
 #include <random>
-#include <cstddef>
 #include <iostream>
-#include <cstring>
 using std::string;
 using std::fstream;
 using std::ifstream;
@@ -19,6 +16,28 @@ using std::ifstream;
 using std::ofstream;
 #include "BPlusTree.h"
 #include "MyChar.h"
+
+void QuickSort(vector<int> &arr, int left, int right) {
+    if (left >= right) return;
+    int pivot = arr[left + (right - left) / 2];
+    int i = left, j = right;
+    while (i <= j) {
+        while (arr[i] < pivot) ++i;
+        while (arr[j] > pivot) --j;
+        if (i <= j) {
+            std::swap(arr[i], arr[j]);
+            ++i;
+            --j;
+        }
+    }
+    if (left < j) {
+        QuickSort(arr, left, j);
+    }
+    if (i < right) {
+        QuickSort(arr, i, right);
+    }
+}
+
 int main() {
     std::ios::sync_with_stdio(false);
     std::cin.tie(nullptr);
@@ -51,7 +70,7 @@ int main() {
             if (result.empty()) {
                 std::cout << "null\n";
             } else {
-                quick_sort(result, 0, result.size() - 1);
+                QuickSort(result, 0, result.size() - 1);
                 for (int j = 0; j < result.size(); ++j) {
                     if (j) std::cout << ' ';
                     std::cout << result[j];
