@@ -489,7 +489,7 @@ public:
         while (!cursor.Is_leaf) {
             int i=0;
             for (; i < cursor.size; i++) {
-                if (index <= cursor.kv_pair[i].index && (i - 1 == -1 || index >= cursor.kv_pair[i].index)) {
+                if (index <= cursor.kv_pair[i].index && (i - 1 == -1 || index >= cursor.kv_pair[i - 1].index)) {
                     break;
                 }
             }
