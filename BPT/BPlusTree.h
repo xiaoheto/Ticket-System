@@ -124,7 +124,7 @@ private:
             }
             cursor.size++;
             cursor.key_value[l] = kv;
-            int newpos = MR.getindex();
+            int newpos = MR.get_index();
 
             static Node newbro;
             newbro.Is_leaf = true;
@@ -147,7 +147,7 @@ private:
 
                 MR.update(cursor, pos);
                 MR.update(newbro, newpos);
-                int rootpos = MR.getindex();
+                int rootpos = MR.get_index();
                 MR.write(newroot);
                 root = rootpos;
                 return false;
@@ -184,7 +184,7 @@ private:
             }
             cursor.size++;
             cursor.key_value[l] = pass;
-            cursor.ptr[l + 1] = MR.getindex()-1;
+            cursor.ptr[l + 1] = MR.get_index()-1;
             MR.update(cursor, pos);
             return false;
         }
@@ -194,9 +194,9 @@ private:
         }
         ++cursor.size;
         cursor.key_value[l] = pass;
-        cursor.ptr[l + 1] = MR.getindex()-1;
+        cursor.ptr[l + 1] = MR.get_index()-1;
 
-        int newpos = MR.getindex();
+        int newpos = MR.get_index();
         pass = cursor.key_value[MIN];
         static Node newbro;
         newbro.Is_leaf = false;
