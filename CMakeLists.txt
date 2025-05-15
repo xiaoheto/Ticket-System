@@ -16,4 +16,13 @@ add_executable(code
         BPT/MyChar.h
         BPT/MemoryRiver.h
         src/MyError.h
+        src/UserManagement.cpp
+        src/UserManagement.h
+        STLite/map.hpp
+        STLite/utility.h
+        src/TrainManagement.cpp
+        src/TrainManagement.h
+        src/Train.h
+        src/Time.cpp
+        src/Time.h
 )

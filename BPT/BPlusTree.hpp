@@ -158,15 +158,7 @@ class BPlusTree {
             return true;
         }
 
-        int l = 0, r = cur_node.size;
-        while (l < r) {
-            int mid = (l + r) >> 1;
-            if (cur_node.kv_pair[mid] >= kv) {
-                r = mid;
-            } else {
-                l = mid + 1;
-            }
-        }
+        int l = findPos(0,cur_node.size,cur_node,kv);
         if (l < cur_node.size && cur_node.kv_pair[l] == kv) {
             ++l;
         }
@@ -228,15 +220,7 @@ class BPlusTree {
 
     bool Delete(Node &cur_node, int pos, const KVPair<T,index_length> &kv) {
         if (cur_node.is_leaf) {
-            int l = 0, r = cur_node.size;
-            while (l < r) {
-                int mid = (l + r) >> 1;
-                if (cur_node.kv_pair[mid] > kv) {
-                    r = mid;
-                } else {
-                    l = mid + 1;
-                }
-            }
+            int l = findPos(0,cur_node.size,cur_node,kv);
             --l;
             if (l < 0 || l >= cur_node.size || cur_node.kv_pair[l] != kv) {
                 return false;
@@ -255,15 +239,7 @@ class BPlusTree {
             return false;
         }
 
-        int l = 0, r = cur_node.size;
-        while (l < r) {
-            int mid = (l + r) >> 1;
-            if (cur_node.kv_pair[mid] >= kv) {
-                r = mid;
-            } else {
-                l = mid + 1;
-            }
-        }
+        int l = findPos(0,cur_node.size,cur_node,kv);
         if (l < cur_node.size && kv == cur_node.kv_pair[l]) {
             ++l;
         }

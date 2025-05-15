@@ -4,13 +4,30 @@
 
 #include "CommandParser.h"
 
+#include "../src/MyError.h"
+
 Command::Command(const Command &other):
 input(other.input),position(other.position),split_char(other.split_char) {}
 
-Command::Command(char split):split_char(split) {}
+Command::Command(char split):split_char(split),position(0) {}
 
 Command::Command(const string &input, char split):
-input(input),split_char(split) {}
+input(input),split_char(split),position(0) {}
+
+int Command::string_to_int(const string &s) {
+    int ans = 0;
+    for (int i = 0;i < s.size();++i) {
+        if (s[i] == '\r' || s[i] == '\n') {
+            break;
+        }
+        if (s[i] < '0' || s[i] > '9') {
+            throw Error("Invalid\n");
+        }
+        ans *= 10;
+        ans += s[i] - '0';
+    }
+    return ans;
+}
 
 void Command::countArguments() {
     count = 0;

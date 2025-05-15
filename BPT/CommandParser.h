@@ -30,6 +30,8 @@ public:
 
     ~Command() = default;
 
+    int string_to_int(const string &s);
+
     void countArguments();
 
     string getNext();

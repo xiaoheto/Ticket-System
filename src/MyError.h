@@ -6,6 +6,7 @@
 #define MYERROR_H
 #include <string>
 #include <exception>
+#include "MyError.h";
 
 class Error : public std::exception {
 private:

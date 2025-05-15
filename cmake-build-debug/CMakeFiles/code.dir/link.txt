@@ -1,1 +1,1 @@
-/usr/bin/c++ -g CMakeFiles/code.dir/main.cpp.o CMakeFiles/code.dir/BPT/CommandParser.cpp.o -o code 
+/usr/bin/c++ -g CMakeFiles/code.dir/main.cpp.o CMakeFiles/code.dir/BPT/CommandParser.cpp.o CMakeFiles/code.dir/src/UserManagement.cpp.o CMakeFiles/code.dir/src/TrainManagement.cpp.o CMakeFiles/code.dir/src/Time.cpp.o -o code 

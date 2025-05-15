@@ -1,0 +1,8 @@
+//
+// Created by 43741 on 2025/5/15.
+//
+
+#ifndef TRAINMANAGEMENT_H
+#define TRAINMANAGEMENT_H
+
+#endif //TRAINMANAGEMENT_H
