@@ -20,76 +20,8 @@ using std::ofstream;
 
 #include "vector.h";
 #include "MyChar.h"
+#include "MemoryRiver.h"
 using sjtu::vector;
-
-template<class T, int info_len = 2>
-class MemoryRiver {
-    fstream file;
-    string file_name;
-    int sizeofT = sizeof(T);
-
-public:
-    MemoryRiver() = default;
-
-    MemoryRiver(string file_name) : file_name(file_name) {}
-
-    void initialise(const string &FN = "") {
-        if (!FN.empty())
-            file_name = FN;
-        file.open(file_name);
-        if (!file) {
-            file.open(file_name, std::ios::out);
-            file.close();
-            file.open(file_name, std::ios::in | std::ios::out);
-            int tmp = -1, tmp2 = 0;
-            file.write(reinterpret_cast<char *>(&tmp), sizeof(int));
-            for (int i = 1; i < info_len; ++i)
-                file.write(reinterpret_cast<char *>(&tmp2), sizeof(int));
-        } else {
-        }
-    }
-
-    void get_info(int &tmp, int n) {
-        if (n > info_len) return;
-        file.seekg((n - 1) * sizeof(int), std::ios::beg);
-        file.read(reinterpret_cast<char *>(&tmp), sizeof(int));
-    }
-
-    void write_info(int tmp, int n) {
-        if (n > info_len) return;
-        file.seekp((n - 1) * sizeof(int), std::ios::beg);
-        file.write(reinterpret_cast<char *>(&tmp), sizeof(int));
-    }
-
-    int write(T &t) {
-        file.seekp(0, std::ios::end);
-        int index = file.tellp();
-        index = (index - info_len * sizeof(int)) / sizeofT;
-        update(t, index);
-        return index;
-    }
-
-    int getindex() {
-        file.seekp(0, std::ios::end);
-        int index = file.tellp();
-        index = (index - info_len * sizeof(int)) / sizeofT;
-        return index;
-    }
-
-    void update(T &t, const int index) {
-        file.seekp(info_len * sizeof(int) + index * sizeofT);
-        file.write(reinterpret_cast<char *>(&t), sizeofT);
-    }
-
-    void read(T &t, const int index) {
-        file.seekg(info_len * sizeof(int) + index * sizeofT);
-        file.read(reinterpret_cast<char *>(&t), sizeofT);
-    }
-
-    void end(){
-        file.close();
-    }
-};
 
 template<class K,class T>
 struct KVPair {
