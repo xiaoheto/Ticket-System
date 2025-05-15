@@ -139,7 +139,7 @@ struct KVPair {
     }
 };
 
-template<typename K,typename T,int MAX = 150,int MIN = MAX / 2>
+template<typename K,typename T,int MAX = 102,int MIN = MAX / 2>
 class BPTree {
     class Node {
         bool Is_leaf;
