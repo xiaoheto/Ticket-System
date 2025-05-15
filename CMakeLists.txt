@@ -9,9 +9,9 @@ include_directories(Tool)
 
 add_executable(code
         main.cpp
-        BPT/BPlusTree.hpp
+        BPT/BPlusTree.h
         BPT/MyChar.h
         BPT/MemoryRiver.h
-        STLite/map.hpp
+        STLite/map.h
         STLite/utility.h
 )

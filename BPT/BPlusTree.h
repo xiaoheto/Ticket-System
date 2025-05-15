@@ -2,7 +2,7 @@
 #include <fstream>
 #include <cstring>
 
-#include "vector.hpp"
+#include "vector.h"
 #include "MyChar.h"
 #include "MemoryRiver.h"
 using std::string;
@@ -66,35 +66,36 @@ struct KVPair {
     }
 };
 
-template<class K,class T,int MAX = 120,int MIN = MAX / 2,int index_length = 65>
+template<class K,class T,int MAX = 120,int MIN = MAX / 2,int Buffer_size = 120>
 class BPlusTree {
     class Node {
-        bool is_leaf = false;
-        int size = 0;
+        bool Is_leaf;
+        int size;
         KVPair<K,T> kv_pair[MAX + 2];
-        int sib;
-        int son[MAX + 2];
+        int ptr[MAX + 2];
+        int brother;
         friend class BPlusTree;
 
     public:
-        Node() : kv_pair(), son(), sib(0) {
+        Node() : kv_pair(), ptr(), brother(0) {
             for (int i = 0; i < MAX + 1; i++) {
-                son[i] = 0;
+                ptr[i] = 0;
             }
         }
     };
 
-    int root;
-    MemoryRiver<Node> base_file;
+private:
+    MemoryRiver<Node> MR;
     KVPair<K,T> pass;
+    int root;
 
-    //find the first pos that is larger than kv
-    int findPos(int l, int r, Node node, KVPair<K,T> kv) {
-        while (l < r) {
+    int findPos(int l,int r,Node cur_node,KVPair<K,T>kv) {
+        while(l < r) {
             int mid = (l + r) / 2;
-            if (node.kv_pair[mid] > kv) {
+            if (cur_node.kv_pair[mid] > kv) {
                 r = mid;
-            } else {
+            }
+            else {
                 l = mid + 1;
             }
         }
@@ -102,125 +103,124 @@ class BPlusTree {
     }
 
     bool Insert(Node cur_node, int pos, KVPair<K,T> kv) {
-        if (cur_node.is_leaf) {
-            int l = findPos(0, cur_node.size, cur_node, kv);
+        if (cur_node.Is_leaf) {
+            int l = findPos(0,cur_node.size,cur_node,kv);
 
-            if (l > 0 && l < cur_node.size && cur_node.kv_pair[l - 1] == kv) {
+            if (l > 0 && cur_node.kv_pair[l - 1] == kv)
                 return false;
-            }
 
             if (cur_node.size < MAX) {
                 for (int i = cur_node.size - 1; i >= l; --i) {
                     cur_node.kv_pair[i + 1] = cur_node.kv_pair[i];
                 }
-                ++cur_node.size;
+                cur_node.size++;
                 cur_node.kv_pair[l] = kv;
-                base_file.update(cur_node, pos);
+                MR.update(cur_node, pos);
                 return false;
             }
 
             for (int i = cur_node.size - 1; i >= l; --i) {
                 cur_node.kv_pair[i + 1] = cur_node.kv_pair[i];
             }
-            ++cur_node.size;
+            cur_node.size++;
             cur_node.kv_pair[l] = kv;
-            int new_pos = base_file.get_index();
+            int new_pos = MR.get_index();
 
-            static Node new_sib;
-            new_sib.is_leaf = true;
-            new_sib.size = MIN + 1;
-            new_sib.sib = cur_node.sib;
-            cur_node.sib = new_pos;
+            static Node newbro;
+            newbro.Is_leaf = true;
+            newbro.size = MIN + 1;
+            newbro.brother = cur_node.brother;
+            cur_node.brother = new_pos;
             for (int i = 0; i <= MIN; ++i) {
-                new_sib.kv_pair[i] = cur_node.kv_pair[i + MIN];
+                newbro.kv_pair[i] = cur_node.kv_pair[i + MIN];
             }
 
             cur_node.size = MIN;
             if (root == pos) {
 
                 static Node new_root;
-                new_root.is_leaf = false;
+                new_root.Is_leaf = false;
                 new_root.size = 1;
                 new_root.kv_pair[0] = cur_node.kv_pair[MIN];
-                new_root.son[0] = pos;
-                new_root.son[1] = new_pos;
+                new_root.ptr[0] = pos;
+                new_root.ptr[1] = new_pos;
 
-                base_file.update(cur_node, pos);
-                base_file.update(new_sib, new_pos);
-                int rootpos = base_file.get_index();
-                base_file.write(new_root);
+                MR.update(cur_node, pos);
+                MR.update(newbro, new_pos);
+                int rootpos = MR.get_index();
+                MR.write(new_root);
                 root = rootpos;
                 return false;
             }
-            base_file.update(cur_node, pos);
-            base_file.update(new_sib, new_pos);
-            pass = new_sib.kv_pair[0];
+            MR.update(cur_node, pos);
+            MR.update(newbro, new_pos);
+            pass = newbro.kv_pair[0];
             return true;
         }
-
         int l = findPos(0,cur_node.size,cur_node,kv);
+
         if (l < cur_node.size && cur_node.kv_pair[l] == kv) {
             ++l;
         }
 
         Node child;
-        base_file.read(child, cur_node.son[l]);
+        MR.read(child, cur_node.ptr[l]);
 
-        bool state = Insert(child, cur_node.son[l], kv);
-        if (!state) {
+        bool state = Insert(child, cur_node.ptr[l], kv);
+        if (!state)
             return false;
-        }
         if (cur_node.size < MAX) {
             for (int i = cur_node.size - 1; i >= l; --i) {
                 cur_node.kv_pair[i + 1] = cur_node.kv_pair[i];
-                cur_node.son[i + 2] = cur_node.son[i + 1];
+                cur_node.ptr[i + 2] = cur_node.ptr[i + 1];
             }
             ++cur_node.size;
             cur_node.kv_pair[l] = pass;
-            cur_node.son[l + 1] = base_file.get_index()-1;
-            base_file.update(cur_node, pos);
+            cur_node.ptr[l + 1] = MR.get_index()-1;
+            MR.update(cur_node, pos);
             return false;
         }
         for (int i = cur_node.size - 1; i >= l; --i) {
             cur_node.kv_pair[i + 1] = cur_node.kv_pair[i];
-            cur_node.son[i + 2] = cur_node.son[i + 1];
+            cur_node.ptr[i + 2] = cur_node.ptr[i + 1];
         }
         ++cur_node.size;
         cur_node.kv_pair[l] = pass;
-        cur_node.son[l + 1] = base_file.get_index()-1;
+        cur_node.ptr[l + 1] = MR.get_index()-1;
 
-        int new_pos = base_file.get_index();
+        int new_pos = MR.get_index();
         pass = cur_node.kv_pair[MIN];
         static Node newbro;
-        newbro.is_leaf = false;
+        newbro.Is_leaf = false;
         newbro.size = MIN;
         for (int i = 0; i < MIN; ++i) {
             newbro.kv_pair[i] = cur_node.kv_pair[i + MIN + 1];
-            newbro.son[i] = cur_node.son[i + MIN + 1];
+            newbro.ptr[i] = cur_node.ptr[i + MIN + 1];
         }
-        newbro.son[MIN] = cur_node.son[cur_node.size];
+        newbro.ptr[MIN] = cur_node.ptr[cur_node.size];
 
         cur_node.size = MIN;
         if (root == pos) {
-            static Node newroot;
-            newroot.is_leaf = false;
-            newroot.size = 1;
-            newroot.kv_pair[0] = pass;
-            newroot.son[0] = pos;
-            newroot.son[1] = new_pos;
-            base_file.update(cur_node, pos);
-            base_file.update(newbro, new_pos);
-            root = base_file.write(newroot);
+            static Node new_root;
+            new_root.Is_leaf = false;
+            new_root.size = 1;
+            new_root.kv_pair[0] = pass;
+            new_root.ptr[0] = pos;
+            new_root.ptr[1] = new_pos;
+            MR.update(cur_node, pos);
+            MR.update(newbro, new_pos);
+            root = MR.write(new_root);
             return false;
         }
-        base_file.update(cur_node, pos);
-        base_file.update(newbro, new_pos);
+        MR.update(cur_node, pos);
+        MR.update(newbro, new_pos);
         return true;
     }
 
     bool Delete(Node &cur_node, int pos, const KVPair<K,T> &kv) {
-        if (cur_node.is_leaf) {
+        if (cur_node.Is_leaf) {
             int l = findPos(0,cur_node.size,cur_node,kv);
+
             --l;
             if (l < 0 || l >= cur_node.size || cur_node.kv_pair[l] != kv) {
                 return false;
@@ -230,9 +230,9 @@ class BPlusTree {
             }
             --cur_node.size;
             if (pos == root) {
-                base_file.update(cur_node, pos);
+                MR.update(cur_node, pos);
             }
-            base_file.update(cur_node, pos);
+            MR.update(cur_node, pos);
             if (cur_node.size < MIN) {
                 return true;
             }
@@ -240,49 +240,50 @@ class BPlusTree {
         }
 
         int l = findPos(0,cur_node.size,cur_node,kv);
+
         if (l < cur_node.size && kv == cur_node.kv_pair[l]) {
             ++l;
         }
         Node child;
-        base_file.read(child, cur_node.son[l]);
-        bool state = Delete(child, cur_node.son[l], kv);
+        MR.read(child, cur_node.ptr[l]);
+        bool state = Delete(child, cur_node.ptr[l], kv);
         if (!state)
             return false;
         if (pos == root && cur_node.size == 1) {
             static Node newbro[2];
-            base_file.read(newbro[0], cur_node.son[0]);
-            base_file.read(newbro[1], cur_node.son[1]);
+            MR.read(newbro[0], cur_node.ptr[0]);
+            MR.read(newbro[1], cur_node.ptr[1]);
             if (newbro[0].size + newbro[1].size < MAX) {
-                base_file.read(newbro[0], cur_node.son[0]);
-                base_file.read(newbro[1], cur_node.son[1]);
-                if (newbro[0].is_leaf) {
+                MR.read(newbro[0], cur_node.ptr[0]);
+                MR.read(newbro[1], cur_node.ptr[1]);
+                if (newbro[0].Is_leaf) {
                     for (int i = 0; i < newbro[1].size; ++i) {
                         newbro[0].kv_pair[i + newbro[0].size] = newbro[1].kv_pair[i];
                     }
                     newbro[0].size += newbro[1].size;
-                    newbro[0].sib = newbro[1].sib;
-                    root = cur_node.son[0];
-                    base_file.update(newbro[0], cur_node.son[0]);
+                    newbro[0].brother = newbro[1].brother;
+                    root = cur_node.ptr[0];
+                    MR.update(newbro[0], cur_node.ptr[0]);
                     return false;
                 }
                 for (int i = 0; i < newbro[1].size; ++i) {
                     newbro[0].kv_pair[i + newbro[0].size + 1] = newbro[1].kv_pair[i];
-                    newbro[0].son[i + newbro[0].size + 1] = newbro[1].son[i];
+                    newbro[0].ptr[i + newbro[0].size + 1] = newbro[1].ptr[i];
                 }
-                newbro[0].son[newbro[0].size + newbro[1].size + 1] = newbro[1].son[newbro[1].size];
+                newbro[0].ptr[newbro[0].size + newbro[1].size + 1] = newbro[1].ptr[newbro[1].size];
                 newbro[0].kv_pair[newbro[0].size] = cur_node.kv_pair[0];
                 newbro[0].size += newbro[1].size + 1;
-                root = cur_node.son[0];
-                base_file.update(newbro[0], cur_node.son[0]);
+                root = cur_node.ptr[0];
+                MR.update(newbro[0], cur_node.ptr[0]);
                 return false;
             }
         }
         if (l > 0) {
             static Node newbro;
-            base_file.read(newbro, cur_node.son[l - 1]);
+            MR.read(newbro, cur_node.ptr[l - 1]);
             if (newbro.size > MIN) {
-                if (child.is_leaf) {
-                    base_file.read(newbro, cur_node.son[l - 1]);
+                if (child.Is_leaf) {
+                    MR.read(newbro, cur_node.ptr[l - 1]);
                     for (int i = child.size - 1; i >= 0; --i) {
                         child.kv_pair[i + 1] = child.kv_pair[i];
                     }
@@ -290,70 +291,71 @@ class BPlusTree {
                     ++child.size;
                     --newbro.size;
                     cur_node.kv_pair[l - 1] = child.kv_pair[0];
-                    base_file.update(cur_node, pos);
-                    base_file.update(newbro, cur_node.son[l - 1]);
-                    base_file.update(child, cur_node.son[l]);
+                    MR.update(cur_node, pos);
+                    MR.update(newbro, cur_node.ptr[l - 1]);
+                    MR.update(child, cur_node.ptr[l]);
                     return false;
                 }
-                base_file.read(newbro, cur_node.son[l - 1]);
+                MR.read(newbro, cur_node.ptr[l - 1]);
                 for (int i = child.size; i >= 1; --i) {
                     child.kv_pair[i] = child.kv_pair[i - 1];
-                    child.son[i + 1] = child.son[i];
+                    child.ptr[i + 1] = child.ptr[i];
                 }
-                child.son[1] = child.son[0];
+                child.ptr[1] = child.ptr[0];
                 ++child.size;
                 child.kv_pair[0] = cur_node.kv_pair[l - 1];
-                child.son[0] = newbro.son[newbro.size];
+                child.ptr[0] = newbro.ptr[newbro.size];
                 cur_node.kv_pair[l - 1] = newbro.kv_pair[newbro.size - 1];
                 --newbro.size;
-                base_file.update(cur_node, pos);
-                base_file.update(newbro, cur_node.son[l - 1]);
-                base_file.update(child, cur_node.son[l]);
+                MR.update(cur_node, pos);
+                MR.update(newbro, cur_node.ptr[l - 1]);
+                MR.update(child, cur_node.ptr[l]);
                 return false;
             }
-            if (child.is_leaf) {
-                base_file.read(newbro, cur_node.son[l - 1]);
+            if (child.Is_leaf) {
+                MR.read(newbro, cur_node.ptr[l - 1]);
                 for (int i = 0; i < child.size; ++i) {
                     newbro.kv_pair[i + newbro.size] = child.kv_pair[i];
                 }
                 newbro.size += child.size;
-                newbro.sib = child.sib;
+                newbro.brother = child.brother;
                 for (int i = l; i < cur_node.size; ++i) {
                     cur_node.kv_pair[i - 1] = cur_node.kv_pair[i];
-                    cur_node.son[i] = cur_node.son[i + 1];
+                    cur_node.ptr[i] = cur_node.ptr[i + 1];
                 }
                 --cur_node.size;
-                newbro.sib = child.sib;
-                base_file.update(cur_node, pos);
-                base_file.update(newbro, cur_node.son[l - 1]);
+                newbro.brother = child.brother;
+                MR.update(cur_node, pos);
+                MR.update(newbro, cur_node.ptr[l - 1]);
                 if (cur_node.size < MIN)
                     return true;
                 return false;
             }
-            base_file.read(newbro, cur_node.son[l - 1]);
+            MR.read(newbro, cur_node.ptr[l - 1]);
             for (int i = 0; i < child.size; ++i) {
                 newbro.kv_pair[i + newbro.size + 1] = child.kv_pair[i];
-                newbro.son[i + newbro.size + 1] = child.son[i];
+                newbro.ptr[i + newbro.size + 1] = child.ptr[i];
             }
-            newbro.son[newbro.size + child.size + 1] = child.son[child.size];
+            newbro.ptr[newbro.size + child.size + 1] = child.ptr[child.size];
             newbro.kv_pair[newbro.size] = cur_node.kv_pair[l - 1];
             newbro.size += child.size + 1;
             for (int i = l - 1; i < cur_node.size - 1; ++i) {
                 cur_node.kv_pair[i] = cur_node.kv_pair[i + 1];
-                cur_node.son[i + 1] = cur_node.son[i + 2];
+                cur_node.ptr[i + 1] = cur_node.ptr[i + 2];
             }
             --cur_node.size;
-            base_file.update(cur_node, pos);
-            base_file.update(newbro, cur_node.son[l - 1]);
+            MR.update(cur_node, pos);
+            MR.update(newbro, cur_node.ptr[l - 1]);
             if (cur_node.size < MIN)
                 return true;
             return false;
-        } else if (l < cur_node.size) {
+        }
+        else if (l < cur_node.size) {
             static Node newbro;
-            base_file.read(newbro, cur_node.son[l + 1]);
+            MR.read(newbro, cur_node.ptr[l + 1]);
             if (newbro.size > MIN) {
-                if (child.is_leaf) {
-                    base_file.read(newbro, cur_node.son[l + 1]);
+                if (child.Is_leaf) {
+                    MR.read(newbro, cur_node.ptr[l + 1]);
                     child.kv_pair[child.size] = newbro.kv_pair[0];
                     ++child.size;
                     for (int i = 0; i < newbro.size - 1; ++i) {
@@ -361,61 +363,61 @@ class BPlusTree {
                     }
                     --newbro.size;
                     cur_node.kv_pair[l] = newbro.kv_pair[0];
-                    base_file.update(cur_node, pos);
-                    base_file.update(child, cur_node.son[l]);
-                    base_file.update(newbro, cur_node.son[l + 1]);
+                    MR.update(cur_node, pos);
+                    MR.update(child, cur_node.ptr[l]);
+                    MR.update(newbro, cur_node.ptr[l + 1]);
                     return false;
                 }
-                base_file.read(newbro, cur_node.son[l + 1]);
+                MR.read(newbro, cur_node.ptr[l + 1]);
                 child.kv_pair[child.size] = cur_node.kv_pair[l];
-                child.son[child.size + 1] = newbro.son[0];
+                child.ptr[child.size + 1] = newbro.ptr[0];
                 ++child.size;
                 cur_node.kv_pair[l] = newbro.kv_pair[0];
                 for (int i = 0; i < newbro.size - 1; ++i) {
                     newbro.kv_pair[i] = newbro.kv_pair[i + 1];
-                    newbro.son[i] = newbro.son[i + 1];
+                    newbro.ptr[i] = newbro.ptr[i + 1];
                 }
-                newbro.son[newbro.size - 1] = newbro.son[newbro.size];
+                newbro.ptr[newbro.size - 1] = newbro.ptr[newbro.size];
                 --newbro.size;
-                base_file.update(cur_node, pos);
-                base_file.update(child, cur_node.son[l]);
-                base_file.update(newbro, cur_node.son[l + 1]);
+                MR.update(cur_node, pos);
+                MR.update(child, cur_node.ptr[l]);
+                MR.update(newbro, cur_node.ptr[l + 1]);
                 return false;
             }
-            if (child.is_leaf) {
-                base_file.read(newbro, cur_node.son[l + 1]);
+            if (child.Is_leaf) {
+                MR.read(newbro, cur_node.ptr[l + 1]);
                 for (int i = 0; i < newbro.size; ++i) {
                     child.kv_pair[i + child.size] = newbro.kv_pair[i];
                 }
                 child.size += newbro.size;
-                child.sib = newbro.sib;
+                child.brother = newbro.brother;
                 for (int i = l; i < cur_node.size - 1; ++i) {
                     cur_node.kv_pair[i] = cur_node.kv_pair[i + 1];
-                    cur_node.son[i + 1] = cur_node.son[i + 2];
+                    cur_node.ptr[i + 1] = cur_node.ptr[i + 2];
                 }
                 --cur_node.size;
-                child.sib = newbro.sib;
-                base_file.update(cur_node, pos);
-                base_file.update(child, cur_node.son[l]);
+                child.brother = newbro.brother;
+                MR.update(cur_node, pos);
+                MR.update(child, cur_node.ptr[l]);
                 if (cur_node.size < MIN)
                     return true;
                 return false;
             }
-            base_file.read(newbro, cur_node.son[l + 1]);
+            MR.read(newbro, cur_node.ptr[l + 1]);
             for (int i = 0; i < newbro.size; ++i) {
                 child.kv_pair[i + child.size + 1] = newbro.kv_pair[i];
-                child.son[i + child.size + 1] = newbro.son[i];
+                child.ptr[i + child.size + 1] = newbro.ptr[i];
             }
-            child.son[child.size + newbro.size + 1] = newbro.son[newbro.size];
+            child.ptr[child.size + newbro.size + 1] = newbro.ptr[newbro.size];
             child.kv_pair[child.size] = cur_node.kv_pair[l];
             child.size += newbro.size + 1;
             for (int i = l; i < cur_node.size - 1; ++i) {
                 cur_node.kv_pair[i] = cur_node.kv_pair[i + 1];
-                cur_node.son[i + 1] = cur_node.son[i + 2];
+                cur_node.ptr[i + 1] = cur_node.ptr[i + 2];
             }
             --cur_node.size;
-            base_file.update(cur_node,pos );
-            base_file.update(child, cur_node.son[l]);
+            MR.update(cur_node,pos );
+            MR.update(child, cur_node.ptr[l]);
             if (cur_node.size < MIN)
                 return true;
             return false;
@@ -427,85 +429,80 @@ class BPlusTree {
 
 public:
     BPlusTree() {
-        base_file.initialise("BPlusTree");
-        base_file.get_info(root, 1);
+        MR.initialise("BPlusTree.dat");
+        MR.get_info(root, 1);
     }
 
     ~BPlusTree() {
-        base_file.write_info(root, 1);
-        base_file.end();
+        MR.write_info(root, 1);
+        MR.end();
     };
-
     bool empty(){
-        return root == -1;
+        return root==-1;
     }
 
-    void insert(MyChar<index_length> index, T value) {
+    void insert(K index, T value) {
         KVPair<K,T> kv(index, value);
         if (root == -1) {
             Node x;
             x.kv_pair[0] = kv;
             x.size = 1;
-            x.is_leaf = true;
-            x.sib = -1;
-            root = base_file.write(x);
+            x.Is_leaf = true;
+            x.brother = -1;
+            root = MR.write(x);
         } else {
             Node cur_node;
-            base_file.read(cur_node, root);
+            MR.read(cur_node, root);
             Insert(cur_node, root, kv);
         }
     }
 
-    void erase(MyChar<index_length>index, T value) {
-        if (root == -1) {
-            return;
-        }
+    void erase(K index, T value) {
+        if (root == -1) return;
         KVPair<K,T> kv(index, value);
         Node cur_node;
-        base_file.read(cur_node, root);
+        MR.read(cur_node, root);
         Delete(cur_node, root, kv);
     }
 
-    vector<T> query(MyChar<index_length>index) {
+    vector<T> query(K index) {
         vector<T> ans;
         ans.clear();
-        if(root == -1){
+        if(root==-1){
             return ans;
         }
         Node cur_node;
-        base_file.read(cur_node, root);
-        while (!cur_node.is_leaf) {
-            int i = 0;
+        MR.read(cur_node, root);
+        while (!cur_node.Is_leaf) {
+            int i=0;
             for (; i < cur_node.size; i++) {
-                if (std::strcmp(index.c_str(), cur_node.kv_pair[i].index.c_str()) <= 0 &&
-    (i - 1 == -1 || std::strcmp(index.c_str(), cur_node.kv_pair[i - 1].index.c_str()) >= 0)) {
+                if (index < cur_node.kv_pair[i].index && (i == -1 || index >= cur_node.kv_pair[i - 1].index)){
                     break;
                 }
             }
-            base_file.read(cur_node, cur_node.son[i]);
+            MR.read(cur_node, cur_node.ptr[i]);
         }
         for (int i = 0; i <= cur_node.size; i++) {
             if (i == cur_node.size) {
-                if (cur_node.sib == -1) {
+                if (cur_node.brother == -1) {
                     break;
                 }
-                base_file.read(cur_node, cur_node.sib);
+                MR.read(cur_node, cur_node.brother);
                 i = -1;
                 continue;
             }
-            if (std::strcmp(index.c_str(), cur_node.kv_pair[i].index.c_str()) < 0) {
+            if (index < cur_node.kv_pair[i].index) {
                 break;
             }
-            if (std::strcmp(index.c_str(), cur_node.kv_pair[i].index.c_str()) == 0) {
+            if (index == cur_node.kv_pair[i].index) {
                 ans.push_back(cur_node.kv_pair[i].value);
                 continue;
             }
         }
         return ans;
     }
-
     void end(){
-        base_file.end();
+        MR.end();
     }
 };
 

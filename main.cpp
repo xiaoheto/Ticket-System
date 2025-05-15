@@ -17,7 +17,7 @@ using std::string;
 using std::fstream;
 using std::ifstream;
 using std::ofstream;
-#include "BPlusTree.hpp"
+#include "BPlusTree.h"
 #include "MyChar.h"
 int main() {
     std::ios::sync_with_stdio(false);

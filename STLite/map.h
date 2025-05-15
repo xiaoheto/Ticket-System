@@ -4,7 +4,7 @@
 // only for std::less<T>
 #include <cstddef>
 #include <functional>
-#include "exceptions.hpp"
+#include "exceptions.h"
 #include "utility.h"
 
 namespace sjtu {
